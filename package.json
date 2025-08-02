@@ -2,9 +2,9 @@
   "name": "meal-sync",
   "version": "1.0.0",
   "description": "meal-sync project",
-  "main": "index.js",
+  "main": "backend/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon backend/server.js"
   },
   "repository": {
     "type": "git",
