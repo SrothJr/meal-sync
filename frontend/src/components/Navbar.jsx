@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User, LayoutDashboard, ChefHat } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import logo from "../assets/meal-sync-logo.svg";
 
 const Navbar = () => {
   const { user, logout } = useAuthStore();
@@ -27,11 +28,17 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
+
           <div className="flex-shrink-0">
             <Link
               to="/"
-              className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text"
+              className="flex items-center text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 text-transparent bg-clip-text"
             >
+              <img
+                src={logo}
+                alt="meal-sync-logo"
+                className="h-12 w-auto mr-2"
+              />{" "}
               Meal Sync
             </Link>
           </div>
