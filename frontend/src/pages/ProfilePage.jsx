@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useUserStore } from "../store/userStore";
-import { User, Mail, MapPin, Edit, Save, X, Loader } from "lucide-react";
+import {
+  User,
+  Mail,
+  MapPin,
+  Edit,
+  Save,
+  X,
+  Loader,
+  Locate,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import Navbar from "../components/Navbar";
@@ -9,7 +18,8 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import Input from "../components/Input";
 
 const ProfilePage = () => {
-  const { profile, isLoading, error, fetchProfile, updateProfile } = useUserStore();
+  const { profile, isLoading, error, fetchProfile, updateProfile } =
+    useUserStore();
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: "", area: "" });
@@ -85,7 +95,11 @@ const ProfilePage = () => {
                     className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg"
                     disabled={isLoading}
                   >
-                    {isLoading ? <Loader className="animate-spin" size={18} /> : <Save size={18} />}
+                    {isLoading ? (
+                      <Loader className="animate-spin" size={18} />
+                    ) : (
+                      <Save size={18} />
+                    )}
                     Save
                   </motion.button>
                   <motion.button
@@ -109,21 +123,69 @@ const ProfilePage = () => {
                   placeholder="Full Name"
                 />
                 {/* For consistency, using the Input component. A dropdown could be used here as well. */}
-                <Input
-                  name="area"
-                  icon={MapPin}
-                  value={formData.area}
-                  onChange={handleInputChange}
-                  placeholder="Area"
-                />
+                <div className="relative mb-6">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Locate className="size-5 text-green-500" />
+                  </div>
+                  <select
+                    id="area"
+                    name="area"
+                    value={formData.area}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-3 py-2 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700 focus:border-green-500 focus:ring-2 focus:ring-green-500 text-white placeholder-gray-400 transition duration-200 appearance-none"
+                  >
+                    <option value="" disabled>
+                      Select your Area
+                    </option>
+                    {[
+                      "Mirpur",
+                      "Gulshan",
+                      "Banani",
+                      "Dhanmondi",
+                      "Mohammadpur",
+                      "Uttara",
+                      "Bashundhara",
+                      "Old Dhaka",
+                    ].map((loc) => (
+                      <option key={loc} value={loc}>
+                        {loc}
+                      </option>
+                    ))}
+                  </select>
+                  {/* custom dropdown arrow  */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <svg
+                      className="size-5 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M19 9l-7 7-7-7"
+                      ></path>
+                    </svg>
+                  </div>
+                </div>
               </form>
             ) : (
               <div className="mt-4 space-y-4 text-lg text-gray-300">
-                <p className="flex items-center gap-3"><User className="text-green-400" /> Name: {profile?.name}</p>
-                <p className="flex items-center gap-3"><Mail className="text-green-400" /> Email: {profile?.email}</p>
-                <p className="flex items-center gap-3"><MapPin className="text-green-400" /> Area: {profile?.area}</p>
+                <p className="flex items-center gap-3">
+                  <User className="text-green-400" /> Name: {profile?.name}
+                </p>
+                <p className="flex items-center gap-3">
+                  <Mail className="text-green-400" /> Email: {profile?.email}
+                </p>
+                <p className="flex items-center gap-3">
+                  <MapPin className="text-green-400" /> Area: {profile?.area}
+                </p>
                 {/* Corrected to use profile.role */}
-                <p className="flex items-center gap-3 capitalize"><User className="text-green-400" /> Role: {profile?.role}</p>
+                <p className="flex items-center gap-3 capitalize">
+                  <User className="text-green-400" /> Role: {profile?.role}
+                </p>
               </div>
             )}
           </div>

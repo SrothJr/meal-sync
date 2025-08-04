@@ -9,6 +9,7 @@ import EmailVerificationPage from "./pages/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import FindChefsPage from "./pages/FindChefsPage";
+import ProfilePage from "./pages/ProfilePage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -94,6 +95,14 @@ function App() {
           element={
             <ProtectRoute>
               <FindChefsPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectRoute>
+              <ProfilePage />
             </ProtectRoute>
           }
         />
