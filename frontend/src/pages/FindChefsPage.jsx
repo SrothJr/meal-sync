@@ -15,7 +15,11 @@ const FindChefsPage = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <LoadingSpinner />;
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-10 z-50">
+          <LoadingSpinner />
+        </div>
+      );
     }
 
     if (error) {
@@ -88,7 +92,7 @@ const FindChefsPage = () => {
             Discover home-based cooks near you.
           </p>
         </motion.div>
-        
+
         {renderContent()}
       </div>
     </>
