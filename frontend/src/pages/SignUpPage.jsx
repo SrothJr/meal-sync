@@ -90,7 +90,7 @@ const SignUpPage = () => {
                 </option>
               ))}
             </select>
-            {/* Optional: Add a custom dropdown arrow if appearance-none is used */}
+            {/* custom dropdown arrow  */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg
                 className="size-5 text-gray-400"
@@ -128,7 +128,7 @@ const SignUpPage = () => {
                 </option>
               ))}
             </select>
-            {/* Optional: Add a custom dropdown arrow if appearance-none is used */}
+            {/* custom dropdown arrow */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg
                 className="size-5 text-gray-400"
