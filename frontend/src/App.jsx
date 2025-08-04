@@ -88,6 +88,14 @@ function App() {
             </RedirectAuthenticatedUser>
           }
         />
+        {/* <Route
+          path="/find-chefs"
+          element={
+            <ProtectRoute>
+              <FindChefsPage />
+            </ProtectRoute>
+          }
+        /> */}
       </Routes>
       <Toaster />
     </div>
