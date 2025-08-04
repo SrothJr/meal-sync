@@ -57,7 +57,7 @@ const Navbar = () => {
               </motion.div>
               <motion.div variants={navItemVariants}>
                 <Link
-                  to="/profile"
+                  to="/find-chefs"
                   className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   <ChefHat className="w-4 h-4 mr-2" />
