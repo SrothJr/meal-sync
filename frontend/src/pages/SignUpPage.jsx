@@ -20,7 +20,7 @@ const SignUpPage = () => {
     e.preventDefault();
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, area, role);
       navigate("/verify-email");
     } catch (error) {
       console.log(error);

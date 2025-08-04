@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    area: {
+      type: String,
+      required: false, //for now
+    },
+    role: {
+      type: String,
+      required: false, //for now
+    },
     lastLogin: {
       type: Date,
       default: Date.now,

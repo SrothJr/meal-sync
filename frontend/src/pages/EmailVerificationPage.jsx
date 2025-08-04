@@ -1,15 +1,27 @@
-import { Lock } from "lucide-react";
+import { Lock, Loader } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 import Input from "../components/Input";
+import { useAuthStore } from "../store/authStore";
 
 const EmailVerificationPage = () => {
   const [code, setCode] = useState("");
-  const isLoading = false;
-  const handleVerification = (e) => {
+  const navigate = useNavigate();
+  // const isLoading = false;
+  const { verifyEmail, error, isLoading } = useAuthStore();
+  const handleVerification = async (e) => {
     e.preventDefault();
+    const VerificationCode = code;
+    try {
+      const response = await verifyEmail(VerificationCode);
+      navigate("/");
+      toast.success("Email Verification Successful");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -40,7 +52,7 @@ const EmailVerificationPage = () => {
               Resend Verification Code?
             </Link>
           </div>
-
+          {error && <p className="text-red-500 font-semibold mt-2">{error}</p>}
           <motion.button
             className="mt-5 w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white 
 						font-bold rounded-lg shadow-lg hover:from-green-600

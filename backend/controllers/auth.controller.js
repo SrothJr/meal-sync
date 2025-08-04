@@ -14,11 +14,11 @@ import { User } from "../models/user.model.js";
 
 // SignUp
 export const signup = async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password, name, area, role } = req.body;
 
   try {
     if (!email || !password || !name) {
-      throw new Error("All fields are required!");
+      throw new Error("Name, Email, Password fields are required!");
     }
     const userAlreadyExists = await User.findOne({ email });
     if (userAlreadyExists) {
@@ -34,6 +34,8 @@ export const signup = async (req, res) => {
       email,
       password: hashedPassword,
       name,
+      area,
+      role,
       verificationToken: verificationCode,
       verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
