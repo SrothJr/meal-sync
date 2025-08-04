@@ -10,6 +10,7 @@ axios.defaults.withCredentials = true;
 
 export const useUserStore = create((set) => ({
   chefs: [],
+  profile: null,
   isLoading: false,
   error: null,
 
@@ -27,6 +28,35 @@ export const useUserStore = create((set) => ({
         error: error.response.data.message || "Error finding chefs",
         isLoading: false,
       });
+      throw new Error(error.response.data.message);
+    }
+  },
+  fetchProfile: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/profile`);
+      set({ profile: response.data.user, isLoading: false });
+    } catch (error) {
+      set({
+        error: error.response.data.message || "Error fetching profile",
+        isLoading: false,
+      });
+    }
+  },
+
+  updateProfile: async (profileData) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await axios.put(`${API_URL}/profile`, profileData);
+      set({ profile: response.data.user, isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response.data.message || "Error updating profile",
+        isLoading: false,
+      });
+
       throw new Error(error.response.data.message);
     }
   },
