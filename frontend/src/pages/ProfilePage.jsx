@@ -10,6 +10,7 @@ import {
   X,
   Loader,
   Locate,
+  UsersRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -174,17 +175,18 @@ const ProfilePage = () => {
             ) : (
               <div className="mt-4 space-y-4 text-lg text-gray-300">
                 <p className="flex items-center gap-3">
-                  <User className="text-green-400" /> Name: {profile?.name}
+                  <User className="text-green-400" /> Name : {profile?.name}
                 </p>
                 <p className="flex items-center gap-3">
-                  <Mail className="text-green-400" /> Email: {profile?.email}
+                  <Mail className="text-green-400" /> Email : {profile?.email}
                 </p>
                 <p className="flex items-center gap-3">
-                  <MapPin className="text-green-400" /> Area: {profile?.area}
+                  <MapPin className="text-green-400" /> Area : {profile?.area}
                 </p>
                 {/* Corrected to use profile.role */}
                 <p className="flex items-center gap-3 capitalize">
-                  <User className="text-green-400" /> Role: {profile?.role}
+                  <UsersRound className="text-green-400" /> Role :{" "}
+                  {profile?.role}
                 </p>
               </div>
             )}
