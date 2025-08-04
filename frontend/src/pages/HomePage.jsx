@@ -35,8 +35,8 @@ const HomePage = () => {
             </h3>
             <p className="text-gray-300">Name: {user.name}</p>
             <p className="text-gray-300">Email: {user.email}</p>
-            <p className="text-gray-300">Name: {user.area}</p>
-            <p className="text-gray-300">Email: {user.role}</p>
+            <p className="text-gray-300">Area: {user.area}</p>
+            <p className="text-gray-300">Role: {user.role}</p>
           </motion.div>
           <motion.div
             className="p-4 bg-gray-800 bg-opacity-50 rounded-lg border border-gray-700"
