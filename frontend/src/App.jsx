@@ -1,11 +1,14 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage";
 import EmailVerificationPage from "./pages/EmailVerificationPage";
-import { useAuthStore } from "./store/authStore";
-import { useEffect } from "react";
 
+import { useAuthStore } from "./store/authStore";
+import LoadingSpinner from "./components/LoadingSpinner";
 // handling logged out user to protect routes
 const ProtectRoute = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -38,10 +41,18 @@ function App() {
 
   console.log("isAuthenticated", isAuthenticated);
   console.log("user", user);
+  if (isCheckingAuth) return <LoadingSpinner />;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 flex items-center justify-center relative overflow-hidden">
       <Routes>
-        <Route path="/" element={<ProtectRoute>"Home"</ProtectRoute>} />
+        <Route
+          path="/"
+          element={
+            <ProtectRoute>
+              <HomePage />
+            </ProtectRoute>
+          }
+        />
         <Route
           path="/signup"
           element={
