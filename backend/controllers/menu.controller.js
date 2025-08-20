@@ -27,7 +27,7 @@ export const createMenu = async (req, res) => {
 
     res
       .status(201)
-      .json({ success: true, message: "Menu Created successfully" });
+      .json({ success: true, message: "Menu Created successfully", menu });
   } catch (error) {
     console.error("Error in createMenu", error);
     res
@@ -91,12 +91,10 @@ export const deleteMenu = async (req, res) => {
     }
 
     if (menu.chef.toString() !== chefId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You can only delete your own menus",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only delete your own menus",
+      });
     }
 
     await menu.deleteOne();
@@ -107,5 +105,44 @@ export const deleteMenu = async (req, res) => {
   } catch (error) {
     console.error("Error in deleteMenu ", error);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+export const getMenuById = async (req, res) => {
+  try {
+    const { menuId } = req.params;
+    const menu = await Menu.findById(menuId).populate("chef", "name area");
+
+    if (!menu) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Menu not found" });
+    }
+
+    res.status(200).json({ success: true, menu });
+  } catch (error) {
+    console.error("Error in getMenuById ", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+export const getMenusByChefId = async (req, res) => {
+  try {
+    const { chefId } = req.params;
+    const menus = await Menu.find({ chef: chefId }).populate(
+      "chef",
+      "name area"
+    );
+
+    if (!menus || menus.length === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No menus found for this chef" });
+    }
+
+    res.status(200).json({ success: true, menus });
+  } catch (error) {
+    console.error("Error in getMenusByChefId ", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
