@@ -50,12 +50,10 @@ export const updateMenu = async (req, res) => {
         .json({ success: false, message: "Menu not found" });
     }
     if (menu.chef.toString() !== chefId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You can only update your own menus",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only update your own menus",
+      });
     }
 
     menu.title = title || menu.title;
@@ -76,5 +74,38 @@ export const updateMenu = async (req, res) => {
     res
       .status(500)
       .json({ success: false, message: "Server error in updateMenu" });
+  }
+};
+
+export const deleteMenu = async (req, res) => {
+  try {
+    const { menuId } = req.params;
+    const chefId = req.userId;
+
+    const menu = await Menu.findById(menuId);
+
+    if (!menu) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Menu not found" });
+    }
+
+    if (menu.chef.toString() !== chefId) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Access denied. You can only delete your own menus",
+        });
+    }
+
+    await menu.deleteOne();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Menu deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteMenu ", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
