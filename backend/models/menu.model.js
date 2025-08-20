@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const menuItemSchema = new mongoose.Schema({
   day: {
@@ -33,6 +33,7 @@ const menuSchema = new mongoose.Schema(
     },
     title: { type: String, required: true },
     description: { type: String, required: true },
+    schedule: [menuItemSchema],
   },
   { timestamps: true }
 );
