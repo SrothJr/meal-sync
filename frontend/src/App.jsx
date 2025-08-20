@@ -10,6 +10,9 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import FindChefsPage from "./pages/FindChefsPage";
 import ProfilePage from "./pages/ProfilePage";
+import MenuPage from "./pages/MenuPage";
+import CreateMenuPage from "./pages/CreateMenuPage";
+import MenuDetailsPage from "./pages/MenuDetailsPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -103,6 +106,30 @@ function App() {
           element={
             <ProtectRoute>
               <ProfilePage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/menus"
+          element={
+            <ProtectRoute>
+              <MenuPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/menus/new"
+          element={
+            <ProtectRoute>
+              <CreateMenuPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/menus/:menuId"
+          element={
+            <ProtectRoute>
+              <MenuDetailsPage />
             </ProtectRoute>
           }
         />
