@@ -3,6 +3,7 @@ import {
   createSubscription,
   getChefSubscriptions,
   updateSubscriptionStatus,
+  renewSubscription,
 } from "../controllers/subscription.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -22,5 +23,10 @@ router.get("/chef", verifyToken, getChefSubscriptions);
 // @desc    Update a subscription's status (for chefs and subscribers)
 // @access  Private
 router.patch("/:subscriptionId/status", verifyToken, updateSubscriptionStatus);
+
+// @route   POST /api/subscriptions/:subscriptionId/renew
+// @desc    Manually renew a subscription (for subscribers)
+// @access  Private
+router.post("/:subscriptionId/renew", verifyToken, renewSubscription);
 
 export default router;

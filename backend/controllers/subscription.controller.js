@@ -198,3 +198,103 @@ export const updateSubscriptionStatus = async (req, res) => {
     });
   }
 };
+
+export const renewSubscription = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const requesterId = req.userId;
+
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: "Subscription not found." });
+    }
+
+    // Authorization: Only the subscriber can renew their subscription
+    if (subscription.subscriber.toString() !== requesterId) {
+      return res.status(403).json({ success: false, message: "Access Denied: You can only renew your own subscriptions." });
+    }
+
+    // Business Rule: Check if the subscription is in a renewable state
+    const nonRenewableStatuses = ["pending", "rejected", "cancelled", "paused"];
+    if (nonRenewableStatuses.includes(subscription.status)) {
+      return res.status(400).json({ success: false, message: `Cannot renew a subscription with status: ${subscription.status}.` });
+    }
+
+    // Fetch the current menu to get updated prices
+    const menu = await Menu.findById(subscription.menu);
+    if (!menu) {
+      return res.status(404).json({ success: false, message: "Associated menu not found. Cannot renew." });
+    }
+
+    // Recalculate price based on current menu and selection
+    const priceLookup = new Map();
+    menu.schedule.forEach(item => {
+      const key = `${item.day}-${item.mealType}`;
+      priceLookup.set(key, item.price);
+    });
+
+    // --- CORRECTED PRICE CALCULATION LOGIC ---
+    let newTotalPrice = 0;
+    // Map to store the total cost of meals for each selected day (e.g., Monday: 200, Tuesday: 150)
+    const dailyMealCosts = new Map(); 
+
+    subscription.selection.forEach(selectedDay => {
+      let costForThisDay = 0;
+      selectedDay.mealTypes.forEach(mealType => {
+        const key = `${selectedDay.day}-${mealType}`;
+        costForThisDay += priceLookup.get(key) || 0;
+      });
+      dailyMealCosts.set(selectedDay.day, costForThisDay);
+    });
+
+    // Calculate the new end date for the *next* period
+    const currentEndDate = new Date(subscription.endDate);
+    let nextPeriodEndDate = new Date(currentEndDate);
+
+    if (subscription.subscriptionType === "weekly") {
+      nextPeriodEndDate.setDate(nextPeriodEndDate.getDate() + 7);
+      // For weekly, sum up the daily costs for the selected days in one week
+      subscription.selection.forEach(selectedDay => {
+        newTotalPrice += dailyMealCosts.get(selectedDay.day) || 0;
+      });
+    } else if (subscription.subscriptionType === "monthly") {
+      nextPeriodEndDate.setMonth(nextPeriodEndDate.getMonth() + 1);
+
+      // For monthly, iterate through each day of the *next* month-long period
+      let tempCurrentDate = new Date(currentEndDate);
+      tempCurrentDate.setDate(tempCurrentDate.getDate() + 1); // Start counting from the day *after* the current end date
+
+      while (tempCurrentDate <= nextPeriodEndDate) { // Changed to <= to include the last day of the new period
+        const dayOfWeek = tempCurrentDate.toLocaleDateString("en-US", { weekday: 'long' });
+        newTotalPrice += dailyMealCosts.get(dayOfWeek) || 0;
+        tempCurrentDate.setDate(tempCurrentDate.getDate() + 1);
+      }
+    }
+    // --- END CORRECTED PRICE CALCULATION LOGIC ---
+
+    // --- SIMPLIFIED DATE HANDLING (as per your suggestion) ---
+    // Don't change subscription.startDate at all.
+    // Just extend the endDate.
+    subscription.endDate = nextPeriodEndDate;
+    subscription.totalPrice = newTotalPrice;
+    subscription.status = "active"; // Ensure it's active upon renewal
+
+    await subscription.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Subscription renewed successfully.",
+      data: subscription,
+    });
+  } catch (error) {
+    console.error("Error in renewSubscription: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error in renewSubscription",
+      error: error.message,
+    });
+  }
+};
+
+
