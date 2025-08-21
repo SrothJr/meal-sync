@@ -114,7 +114,7 @@ export const createSubscription = async (req, res) => {
   }
 };
 
-export const getChefSubscription = async (req, res) => {
+export const getChefSubscriptions = async (req, res) => {
   try {
     const chefId = req.userId;
 
@@ -123,23 +123,78 @@ export const getChefSubscription = async (req, res) => {
       .populate("menu", "title");
 
     if (!subscriptions || subscriptions.length === 0) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "No subscriptions found for this chef",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "No subscriptions found for this chef",
+      });
     }
 
     res.status(200).json({ success: true, data: subscriptions });
   } catch (error) {
     console.error("Error in getChefSubscription: ", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server Error in getChefSubscription",
-        error: error.message,
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getChefSubscription",
+      error: error.message,
+    });
+  }
+};
+
+export const updateSubscriptionStatus = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const { status } = req.body;
+    const requesterId = req.userId;
+
+    const allowedStatusUpdates = ["active", "rejected", "paused", "cancelled"];
+    if (!status || !allowedStatusUpdates.includes(status)) {
+      return res.status(400).json({ success: false, message: "Invalid status provided" });
+    }
+
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: "Subscription not found" });
+    }
+
+    const isChef = subscription.chef.toString() === requesterId;
+    const isSubscriber = subscription.subscriber.toString() === requesterId;
+
+    if (status === 'active') {
+      if (isChef && subscription.status === 'pending') {
+        // Chef approving
+      } else if (isSubscriber && subscription.status === 'paused') {
+        // Subscriber resuming
+      } else {
+        return res.status(403).json({ success: false, message: "Access Denied or invalid state change to 'active'." });
+      }
+    } else if (status === 'rejected') {
+      if (!isChef || subscription.status !== 'pending') {
+        return res.status(403).json({ success: false, message: "Access Denied or invalid state change for 'rejected'." });
+      }
+    } else if (status === 'paused' || status === 'cancelled') {
+      if (!isSubscriber) {
+        return res.status(403).json({ success: false, message: "Access Denied: Only the subscriber can perform this action." });
+      }
+      if (['expired', 'rejected', 'cancelled'].includes(subscription.status)) {
+        return res.status(400).json({ success: false, message: `Cannot ${status} a subscription that is already ${subscription.status}.` });
+      }
+    }
+
+    subscription.status = status;
+    await subscription.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Subscription status successfully updated to '${status}'`,
+      data: subscription,
+    });
+  } catch (error) {
+    console.error("Error in updateSubscriptionStatus: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error in updateSubscriptionStatus",
+      error: error.message,
+    });
   }
 };
