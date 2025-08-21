@@ -117,16 +117,22 @@ export const createSubscription = async (req, res) => {
 export const getChefSubscriptions = async (req, res) => {
   try {
     const chefId = req.userId;
+    const { status, subscriptionType } = req.query;
 
-    const subscriptions = await Subscription.find({ chef: chefId })
+    const filter = { chef: chefId };
+    if (status) {
+      filter.status = status;
+    }
+    if (subscriptionType) {
+      filter.subscriptionType = subscriptionType;
+    }
+
+    const subscriptions = await Subscription.find(filter)
       .populate("subscriber", "name email area")
       .populate("menu", "title");
 
     if (!subscriptions || subscriptions.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "No subscriptions found for this chef",
-      });
+      return res.status(200).json({ success: true, data: [] });
     }
 
     res.status(200).json({ success: true, data: subscriptions });
@@ -184,10 +190,16 @@ export const updateSubscriptionStatus = async (req, res) => {
     subscription.status = status;
     await subscription.save();
 
+    // Populate the fields before sending the response
+    const populatedSubscription = await Subscription.findById(subscriptionId)
+      .populate("subscriber", "name email area")
+      .populate("chef", "name email area")
+      .populate("menu", "title");
+
     res.status(200).json({
       success: true,
       message: `Subscription status successfully updated to '${status}'`,
-      data: subscription,
+      data: populatedSubscription, // Send the populated object
     });
   } catch (error) {
     console.error("Error in updateSubscriptionStatus: ", error);
@@ -292,6 +304,29 @@ export const renewSubscription = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server Error in renewSubscription",
+      error: error.message,
+    });
+  }
+};
+
+export const getMySubscriptions = async (req, res) => {
+  try {
+    const subscriberId = req.userId;
+
+    const subscriptions = await Subscription.find({ subscriber: subscriberId })
+      .populate("chef", "name email area")
+      .populate("menu", "title");
+
+    if (!subscriptions || subscriptions.length === 0) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    res.status(200).json({ success: true, data: subscriptions });
+  } catch (error) {
+    console.error("Error in getMySubscriptions: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getMySubscriptions",
       error: error.message,
     });
   }

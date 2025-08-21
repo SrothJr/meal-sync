@@ -2,14 +2,20 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { LogOut, User, LayoutDashboard, ChefHat } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import useSubscriptionStore from "../store/subscriptionStore";
+import useMenuStore from "../store/menuStore";
 import logo from "../assets/meal-sync-logo.svg";
 
 const Navbar = () => {
   const { user, logout } = useAuthStore();
+  const { clearSubscriptions } = useSubscriptionStore();
+  const { clearMenus } = useMenuStore();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
+    clearSubscriptions();
+    clearMenus();
     navigate("/login");
   };
 
@@ -80,7 +86,7 @@ const Navbar = () => {
                   Profile
                 </Link>
               </motion.div>
-              {user?.role === 'chef' && (
+              {user?.role === "chef" && (
                 <motion.div variants={navItemVariants}>
                   <Link
                     to="/menus"
@@ -88,6 +94,28 @@ const Navbar = () => {
                   >
                     <ChefHat className="w-4 h-4 mr-2" />
                     My Menus
+                  </Link>
+                </motion.div>
+              )}
+              {user?.role === "chef" && (
+                <motion.div variants={navItemVariants}>
+                  <Link
+                    to="/chef/subscriptions"
+                    className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <ChefHat className="w-4 h-4 mr-2" />
+                    Client Subscriptions
+                  </Link>
+                </motion.div>
+              )}
+              {user?.role === "client" && (
+                <motion.div variants={navItemVariants}>
+                  <Link
+                    to="/my-subscriptions"
+                    className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <ChefHat className="w-4 h-4 mr-2" />
+                    My Subscriptions
                   </Link>
                 </motion.div>
               )}

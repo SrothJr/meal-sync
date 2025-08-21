@@ -4,6 +4,7 @@ import {
   getChefSubscriptions,
   updateSubscriptionStatus,
   renewSubscription,
+  getMySubscriptions,
 } from "../controllers/subscription.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -18,6 +19,11 @@ router.post("/", verifyToken, createSubscription);
 // @desc    Get all subscriptions for the logged-in chef
 // @access  Private (for chefs)
 router.get("/chef", verifyToken, getChefSubscriptions);
+
+// @route   GET /api/subscriptions/my-subscriptions
+// @desc    Get all subscriptions for the logged-in subscriber
+// @access  Private (for subscribers)
+router.get("/my-subscriptions", verifyToken, getMySubscriptions);
 
 // @route   PATCH /api/subscriptions/:subscriptionId/status
 // @desc    Update a subscription's status (for chefs and subscribers)

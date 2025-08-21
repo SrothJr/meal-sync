@@ -135,14 +135,33 @@ export const getMenusByChefId = async (req, res) => {
     );
 
     if (!menus || menus.length === 0) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No menus found for this chef" });
+      return res.status(200).json({ success: true, menus: [] });
     }
 
     res.status(200).json({ success: true, menus });
   } catch (error) {
     console.error("Error in getMenusByChefId ", error);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const getMenusByArea = async (req, res) => {
+  try {
+    const { area } = req.params;
+    // Find chefs in the specified area
+    const chefsInArea = await User.find({ role: "chef", area: area }).select("_id");
+    const chefIds = chefsInArea.map(chef => chef._id);
+
+    // Find menus created by these chefs
+    const menus = await Menu.find({ chef: { $in: chefIds } }).populate("chef", "name area");
+
+    if (!menus || menus.length === 0) {
+      return res.status(200).json({ success: true, menus: [] });
+    }
+
+    res.status(200).json({ success: true, menus });
+  } catch (error) {
+    console.error("Error in getMenusByArea ", error);
+    res.status(500).json({ success: false, message: "Server error in getMenusByArea" });
   }
 };

@@ -14,6 +14,8 @@ const useMenuStore = create((set, get) => ({
   isLoading: false,
   error: null,
 
+  clearMenus: () => set({ menus: [] }),
+
   setMenus: (menus) => set({ menus }),
   setCurrentMenu: (menu) => set({ currentMenu: menu }),
 
@@ -25,6 +27,18 @@ const useMenuStore = create((set, get) => ({
       return response.data.menus;
     } catch (error) {
       set({ error: error.response?.data?.message || "Failed to fetch menus", isLoading: false });
+      throw error;
+    }
+  },
+
+  fetchMenusByArea: async (area) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/area/${area}`);
+      set({ menus: response.data.menus, isLoading: false });
+      return response.data.menus;
+    } catch (error) {
+      set({ error: error.response?.data?.message || "Failed to fetch menus by area", isLoading: false });
       throw error;
     }
   },

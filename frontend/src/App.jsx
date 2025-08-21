@@ -13,6 +13,8 @@ import ProfilePage from "./pages/ProfilePage";
 import MenuPage from "./pages/MenuPage";
 import CreateMenuPage from "./pages/CreateMenuPage";
 import MenuDetailsPage from "./pages/MenuDetailsPage";
+import ChefSubscriptionsPage from "./pages/ChefSubscriptionsPage";
+import MySubscriptionsPage from "./pages/MySubscriptionsPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -130,6 +132,22 @@ function App() {
           element={
             <ProtectRoute>
               <MenuDetailsPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/chef/subscriptions"
+          element={
+            <ProtectRoute>
+              <ChefSubscriptionsPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/my-subscriptions"
+          element={
+            <ProtectRoute>
+              <MySubscriptionsPage />
             </ProtectRoute>
           }
         />

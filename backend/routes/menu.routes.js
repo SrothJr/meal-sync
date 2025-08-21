@@ -6,6 +6,7 @@ import {
   getMenuById,
   getMenusByChefId,
   updateMenu,
+  getMenusByArea,
 } from "../controllers/menu.controller.js";
 
 const router = express.Router();
@@ -13,6 +14,8 @@ const router = express.Router();
 router.post("/", verifyToken, createMenu);
 
 router.get("/chef/:chefId", getMenusByChefId);
+
+router.get("/area/:area", getMenusByArea);
 
 router.get("/:menuId", getMenuById);
 
