@@ -15,24 +15,29 @@ const subscriptionSchema = new mongoose.Schema(
     menu: { type: mongoose.Schema.Types.ObjectId, ref: "Menu", required: true },
 
     selection: {
-      days: {
-        type: [String],
-        required: true,
-        enum: [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ],
-      },
-      mealTypes: {
-        type: [String],
-        required: true,
-        enum: ["Breakfast", "Lunch", "Dinner"],
-      },
+      type: [
+        {
+          day: {
+            type: String,
+            required: true,
+            enum: [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday",
+            ],
+          },
+          mealTypes: {
+            type: [String],
+            required: true,
+            enum: ["Breakfast", "Lunch", "Dinner"],
+          },
+        },
+      ],
+      required: true,
     },
     subscriptionType: {
       type: String,
@@ -55,5 +60,15 @@ const subscriptionSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+subscriptionSchema.path("selection").validate(function (selection) {
+  if (this.isNew || this.isModified("selection")) {
+    const days = selection.map((s) => s.day);
+    const uniqueDays = new Set(days);
+
+    return uniqueDays.size === days.length;
+  }
+  return true;
+}, "Each day can only be selected once");
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
 export default Subscription;
