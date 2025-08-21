@@ -154,36 +154,53 @@ export const updateSubscriptionStatus = async (req, res) => {
 
     const allowedStatusUpdates = ["active", "rejected", "paused", "cancelled"];
     if (!status || !allowedStatusUpdates.includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status provided" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid status provided" });
     }
 
     const subscription = await Subscription.findById(subscriptionId);
 
     if (!subscription) {
-      return res.status(404).json({ success: false, message: "Subscription not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Subscription not found" });
     }
 
     const isChef = subscription.chef.toString() === requesterId;
     const isSubscriber = subscription.subscriber.toString() === requesterId;
 
-    if (status === 'active') {
-      if (isChef && subscription.status === 'pending') {
+    if (status === "active") {
+      if (isChef && subscription.status === "pending") {
         // Chef approving
-      } else if (isSubscriber && subscription.status === 'paused') {
+      } else if (isSubscriber && subscription.status === "paused") {
         // Subscriber resuming
       } else {
-        return res.status(403).json({ success: false, message: "Access Denied or invalid state change to 'active'." });
+        return res.status(403).json({
+          success: false,
+          message: "Access Denied or invalid state change to 'active'.",
+        });
       }
-    } else if (status === 'rejected') {
-      if (!isChef || subscription.status !== 'pending') {
-        return res.status(403).json({ success: false, message: "Access Denied or invalid state change for 'rejected'." });
+    } else if (status === "rejected") {
+      if (!isChef || subscription.status !== "pending") {
+        return res.status(403).json({
+          success: false,
+          message: "Access Denied or invalid state change for 'rejected'.",
+        });
       }
-    } else if (status === 'paused' || status === 'cancelled') {
+    } else if (status === "paused" || status === "cancelled") {
       if (!isSubscriber) {
-        return res.status(403).json({ success: false, message: "Access Denied: Only the subscriber can perform this action." });
+        return res.status(403).json({
+          success: false,
+          message:
+            "Access Denied: Only the subscriber can perform this action.",
+        });
       }
-      if (['expired', 'rejected', 'cancelled'].includes(subscription.status)) {
-        return res.status(400).json({ success: false, message: `Cannot ${status} a subscription that is already ${subscription.status}.` });
+      if (["expired", "rejected", "cancelled"].includes(subscription.status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot ${status} a subscription that is already ${subscription.status}.`,
+        });
       }
     }
 
@@ -219,29 +236,40 @@ export const renewSubscription = async (req, res) => {
     const subscription = await Subscription.findById(subscriptionId);
 
     if (!subscription) {
-      return res.status(404).json({ success: false, message: "Subscription not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Subscription not found." });
     }
 
     // Authorization: Only the subscriber can renew their subscription
     if (subscription.subscriber.toString() !== requesterId) {
-      return res.status(403).json({ success: false, message: "Access Denied: You can only renew your own subscriptions." });
+      return res.status(403).json({
+        success: false,
+        message: "Access Denied: You can only renew your own subscriptions.",
+      });
     }
 
     // Business Rule: Check if the subscription is in a renewable state
     const nonRenewableStatuses = ["pending", "rejected", "cancelled", "paused"];
     if (nonRenewableStatuses.includes(subscription.status)) {
-      return res.status(400).json({ success: false, message: `Cannot renew a subscription with status: ${subscription.status}.` });
+      return res.status(400).json({
+        success: false,
+        message: `Cannot renew a subscription with status: ${subscription.status}.`,
+      });
     }
 
     // Fetch the current menu to get updated prices
     const menu = await Menu.findById(subscription.menu);
     if (!menu) {
-      return res.status(404).json({ success: false, message: "Associated menu not found. Cannot renew." });
+      return res.status(404).json({
+        success: false,
+        message: "Associated menu not found. Cannot renew.",
+      });
     }
 
     // Recalculate price based on current menu and selection
     const priceLookup = new Map();
-    menu.schedule.forEach(item => {
+    menu.schedule.forEach((item) => {
       const key = `${item.day}-${item.mealType}`;
       priceLookup.set(key, item.price);
     });
@@ -249,11 +277,11 @@ export const renewSubscription = async (req, res) => {
     // --- CORRECTED PRICE CALCULATION LOGIC ---
     let newTotalPrice = 0;
     // Map to store the total cost of meals for each selected day (e.g., Monday: 200, Tuesday: 150)
-    const dailyMealCosts = new Map(); 
+    const dailyMealCosts = new Map();
 
-    subscription.selection.forEach(selectedDay => {
+    subscription.selection.forEach((selectedDay) => {
       let costForThisDay = 0;
-      selectedDay.mealTypes.forEach(mealType => {
+      selectedDay.mealTypes.forEach((mealType) => {
         const key = `${selectedDay.day}-${mealType}`;
         costForThisDay += priceLookup.get(key) || 0;
       });
@@ -267,7 +295,7 @@ export const renewSubscription = async (req, res) => {
     if (subscription.subscriptionType === "weekly") {
       nextPeriodEndDate.setDate(nextPeriodEndDate.getDate() + 7);
       // For weekly, sum up the daily costs for the selected days in one week
-      subscription.selection.forEach(selectedDay => {
+      subscription.selection.forEach((selectedDay) => {
         newTotalPrice += dailyMealCosts.get(selectedDay.day) || 0;
       });
     } else if (subscription.subscriptionType === "monthly") {
@@ -277,8 +305,11 @@ export const renewSubscription = async (req, res) => {
       let tempCurrentDate = new Date(currentEndDate);
       tempCurrentDate.setDate(tempCurrentDate.getDate() + 1); // Start counting from the day *after* the current end date
 
-      while (tempCurrentDate <= nextPeriodEndDate) { // Changed to <= to include the last day of the new period
-        const dayOfWeek = tempCurrentDate.toLocaleDateString("en-US", { weekday: 'long' });
+      while (tempCurrentDate <= nextPeriodEndDate) {
+        // Changed to <= to include the last day of the new period
+        const dayOfWeek = tempCurrentDate.toLocaleDateString("en-US", {
+          weekday: "long",
+        });
         newTotalPrice += dailyMealCosts.get(dayOfWeek) || 0;
         tempCurrentDate.setDate(tempCurrentDate.getDate() + 1);
       }
@@ -332,4 +363,47 @@ export const getMySubscriptions = async (req, res) => {
   }
 };
 
+export const getSubscriptionById = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const requesterId = req.userId;
 
+    console.log("Requester ID:", requesterId);
+
+    const subscription = await Subscription.findById(subscriptionId)
+      .populate("subscriber", "name email area")
+      .populate("chef", "name email area")
+      .populate("menu", "title schedule"); // Populate schedule for menu details
+
+    if (!subscription) {
+      console.log("Subscription not found for ID:", subscriptionId);
+      return res
+        .status(404)
+        .json({ success: false, message: "Subscription not found" });
+    }
+
+    // Correctly access the _id property of the populated objects
+    const subscriberIdFromSub = subscription.subscriber._id.toString();
+    const chefIdFromSub = subscription.chef._id.toString();
+
+    // console.log("Subscription Subscriber ID:", subscriberIdFromSub);
+    // console.log("Subscription Chef ID:", chefIdFromSub);
+
+    // Authorization: Only the subscriber or chef involved in the subscription can view it
+    if (subscriberIdFromSub !== requesterId && chefIdFromSub !== requesterId) {
+      console.log(
+        "Access Denied: Requester ID does not match subscriber or chef ID."
+      );
+      return res.status(403).json({ success: false, message: "Access Denied" });
+    }
+
+    res.status(200).json({ success: true, data: subscription });
+  } catch (error) {
+    console.error("Error in getSubscriptionById: ", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getSubscriptionById",
+      error: error.message,
+    });
+  }
+};

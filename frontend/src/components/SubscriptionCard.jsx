@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Import Link
 import { toast } from 'react-hot-toast';
 import useSubscriptionStore from '../store/subscriptionStore';
 import { useAuthStore } from '../store/authStore';
@@ -49,6 +50,9 @@ const SubscriptionCard = ({ subscription }) => {
       <p className="text-gray-300 mb-4">End Date: {new Date(subscription.endDate).toLocaleDateString()}</p>
 
       <div className="mt-4 flex justify-end space-x-2">
+        {/* View Details button */}
+        <Link to={`/subscriptions/${subscription._id}`} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md transition-colors">View Details</Link>
+
         {isChef && subscription.status === 'pending' && (
           <>
             <button onClick={() => handleStatusUpdate('active')} disabled={isLoading} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50">Approve</button>

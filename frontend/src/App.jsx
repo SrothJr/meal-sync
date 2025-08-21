@@ -15,6 +15,7 @@ import CreateMenuPage from "./pages/CreateMenuPage";
 import MenuDetailsPage from "./pages/MenuDetailsPage";
 import ChefSubscriptionsPage from "./pages/ChefSubscriptionsPage";
 import MySubscriptionsPage from "./pages/MySubscriptionsPage";
+import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -148,6 +149,14 @@ function App() {
           element={
             <ProtectRoute>
               <MySubscriptionsPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/subscriptions/:subscriptionId"
+          element={
+            <ProtectRoute>
+              <SubscriptionDetailsPage />
             </ProtectRoute>
           }
         />
