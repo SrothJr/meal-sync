@@ -6,8 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import Schedule from "../components/Schedule";
 import useMenuStore from "../store/menuStore";
 import Navbar from "../components/Navbar";
-import AddScheduleItemModal from "../components/AddScheduleItemModal";
-import EditScheduleItemModal from "../components/EditScheduleItemModal";
+import ScheduleItemFormModal from "../components/ScheduleItemFormModal";
 
 const MenuDetailsPage = () => {
   const { menuId } = useParams();
@@ -15,8 +14,7 @@ const MenuDetailsPage = () => {
     useMenuStore();
   const [menuData, setMenuData] = useState({});
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedMealType, setSelectedMealType] = useState("");
@@ -64,14 +62,25 @@ const MenuDetailsPage = () => {
   };
 
   const openAddModal = (day, mealType) => {
+    setSelectedItem(null); // Clear selected item for add operation
     setSelectedDay(day);
     setSelectedMealType(mealType);
-    setIsAddModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const openEditModal = (item) => {
     setSelectedItem(item);
-    setIsEditModalOpen(true);
+    setSelectedDay(item.day);
+    setSelectedMealType(item.mealType);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmitModal = (formData) => {
+    if (selectedItem) {
+      handleEditItem(formData);
+    } else {
+      handleAddItem(formData);
+    }
   };
 
   const handleSaveChanges = async () => {
@@ -84,10 +93,11 @@ const MenuDetailsPage = () => {
   };
 
   if (isLoading) {
-    return;
-    <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-10 z-50">
-      <LoadingSpinner />
-    </div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-10 z-50">
+        <LoadingSpinner />;
+      </div>
+    );
   }
 
   if (error) {
@@ -113,39 +123,31 @@ const MenuDetailsPage = () => {
             Edit Menu
           </h1>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6">
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-white">Menu Details</h2>
-            <MenuForm menu={menuData} />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-white">
-              Menu Schedule
-            </h2>
-            <Schedule
-              schedule={menuData.schedule}
-              openAddModal={openAddModal}
-              openEditModal={openEditModal}
-              handleDeleteItem={handleDeleteItem}
-            />
-            <button
-              onClick={handleSaveChanges}
-              className="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              Save Changes
-            </button>
-          </div>
+        <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6 max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold mb-4 text-white">Menu Details</h2>
+          <MenuForm menu={menuData} />
+        </div>
+
+        <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6 max-w-3xl mx-auto mt-8">
+          <h2 className="text-2xl font-bold mb-4 text-white">Menu Schedule</h2>
+          <Schedule
+            schedule={menuData.schedule}
+            openAddModal={openAddModal}
+            openEditModal={openEditModal}
+            handleDeleteItem={handleDeleteItem}
+          />
+          <button
+            onClick={handleSaveChanges}
+            className="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            Save Changes
+          </button>
         </div>
       </div>
-      <AddScheduleItemModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddItem={handleAddItem}
-      />
-      <EditScheduleItemModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onEditItem={handleEditItem}
+      <ScheduleItemFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmitModal}
         item={selectedItem}
       />
     </>
