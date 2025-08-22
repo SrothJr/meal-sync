@@ -11,9 +11,9 @@ import { toast } from "react-hot-toast";
 const HomePage = () => {
   const { user } = useAuthStore();
   const { menus, fetchMenusByArea, isLoading: menuLoading, error: menuError } = useMenuStore();
-  const { chefDashboardMeals, fetchChefDashboardMeals, isLoading: userLoading, error: userError } = useUserStore();
+  const { chefDashboardMeals, fetchChefDashboardMeals, markMealAsDelivered, isLoading: userLoading, error: userError } = useUserStore(); // Get markMealAsDelivered
   const [loadingMenus, setLoadingMenus] = useState(false);
-  const [deliveredMeals, setDeliveredMeals] = useState({}); // New state to track delivered meals
+  const [deliveredMeals, setDeliveredMeals] = useState({});
 
   useEffect(() => {
     const getMenus = async () => {
@@ -37,15 +37,29 @@ const HomePage = () => {
     }
   }, [user?.role, fetchChefDashboardMeals]);
 
-  const handleDeliverMeal = (mealItem) => {
-    // In a real app, this would trigger a backend update to mark as delivered
-    // For now, we'll just update the local state
-    setDeliveredMeals(prev => ({
-      ...prev,
-      [`${mealItem.day}-${mealItem.mealType}-${mealItem.itemName}`]: true // Use a unique key for the meal
-    }));
-    toast.success(`Meal "${mealItem.itemName}" for ${mealItem.day} ${mealItem.mealType} marked as delivered!`);
-    console.log("Marking as delivered:", mealItem);
+  const handleDeliverMeal = async (mealItem) => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Ensure date is start of day
+
+      await markMealAsDelivered({
+        subscriptionId: mealItem.subscriptionId,
+        deliveryDate: today.toISOString(),
+        dayOfWeek: mealItem.day,
+        mealType: mealItem.mealType,
+        itemName: mealItem.itemName,
+        quantity: mealItem.quantity,
+        subscriberId: mealItem.subscribers[0].id, // Assuming one subscriber per meal item for simplicity
+      });
+
+      setDeliveredMeals(prev => ({
+        ...prev,
+        [`${mealItem.day}-${mealItem.mealType}-${mealItem.itemName}`]: true
+      }));
+      toast.success(`Meal "${mealItem.itemName}" for ${mealItem.day} ${mealItem.mealType} marked as delivered!`);
+    } catch (error) {
+      toast.error(error.message || "Failed to mark meal as delivered.");
+    }
   };
 
   const getDayOfWeek = (offset = 0) => {
@@ -61,7 +75,7 @@ const HomePage = () => {
         <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-4">
           {meals.map((meal, index) => {
             const mealKey = `${meal.day}-${meal.mealType}-${meal.itemName}`;
-            const isDelivered = deliveredMeals[mealKey]; // Check if this meal is delivered
+            const isDelivered = deliveredMeals[mealKey] || meal.isDelivered; // Check initial state from backend
             return (
               <div key={index} className="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
                 <div className="text-gray-300">
@@ -72,7 +86,7 @@ const HomePage = () => {
                 {showDeliverButton && (
                   <button
                     onClick={() => handleDeliverMeal(meal)}
-                    disabled={isDelivered} // Disable if delivered
+                    disabled={isDelivered}
                     className={`px-3 py-1 rounded-md text-sm transition-colors ${
                       isDelivered ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
                     }`}

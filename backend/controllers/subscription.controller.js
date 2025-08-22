@@ -314,10 +314,6 @@ export const renewSubscription = async (req, res) => {
         tempCurrentDate.setDate(tempCurrentDate.getDate() + 1);
       }
     }
-    // --- END CORRECTED PRICE CALCULATION LOGIC ---
-
-    // --- SIMPLIFIED DATE HANDLING (as per your suggestion) ---
-    // Don't change subscription.startDate at all.
     // Just extend the endDate.
     subscription.endDate = nextPeriodEndDate;
     subscription.totalPrice = newTotalPrice;

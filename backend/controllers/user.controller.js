@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import Subscription from "../models/subscription.model.js";
 import Menu from "../models/menu.model.js";
+import Delivery from "../models/delivery.model.js"; // Import Delivery model
 
 export const findChefsInArea = async (req, res) => {
   try {
@@ -96,14 +97,12 @@ export const getChefDashboardMeals = async (req, res) => {
 
     const mealsToday = {};
     const mealsTomorrow = {};
-    const mealsNextWeek = {}; // This will aggregate for the next 7 days
+    const mealsNextWeek = {};
 
     activeSubscriptions.forEach(sub => {
-      // Iterate through each day from today up to endOfNextWeek
       for (let d = new Date(today); d <= endOfNextWeek; d.setDate(d.getDate() + 1)) {
         const currentDayOfWeek = d.toLocaleDateString('en-US', { weekday: 'long' });
 
-        // Check if the subscription is active on this specific day
         if (d >= sub.startDate && d <= sub.endDate) {
           sub.selection.forEach(selectedDay => {
             if (selectedDay.day === currentDayOfWeek) {
@@ -123,6 +122,8 @@ export const getChefDashboardMeals = async (req, res) => {
                       quantity: 0,
                       subscribers: [],
                       price: menuItem.price,
+                      isDelivered: false, // Initialize isDelivered
+                      subscriptionId: sub._id, // Add subscriptionId for delivery tracking
                     };
                     mealsToday[mealKey].quantity += 1;
                     mealsToday[mealKey].subscribers.push({
@@ -145,7 +146,6 @@ export const getChefDashboardMeals = async (req, res) => {
                     });
                   }
 
-                  // Aggregate for next 7 days (including today and tomorrow)
                   mealsNextWeek[mealKey] = mealsNextWeek[mealKey] || {
                     day: currentDayOfWeek,
                     mealType: mealType,
@@ -164,6 +164,27 @@ export const getChefDashboardMeals = async (req, res) => {
             }
           });
         }
+      }
+    });
+
+    // Check delivery status for today's meals
+    const deliveredRecords = await Delivery.find({
+      chef: chefId,
+      deliveryDate: today,
+      status: 'delivered',
+    });
+
+    deliveredRecords.forEach(record => {
+      const mealKey = `${record.dayOfWeek}-${record.mealType}-${record.itemName}`;
+      // Find the corresponding meal in mealsToday and mark it as delivered
+      // Need to iterate through mealsToday values to find a match, as mealKey is unique per aggregated meal
+      const mealToUpdate = Object.values(mealsToday).find(meal =>
+        meal.day === record.dayOfWeek &&
+        meal.mealType === record.mealType &&
+        meal.itemName === record.itemName
+      );
+      if (mealToUpdate) {
+        mealToUpdate.isDelivered = true;
       }
     });
 

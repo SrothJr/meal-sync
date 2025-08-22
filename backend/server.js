@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
+import deliveryRoutes from "./routes/delivery.routes.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/menus", menuRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/deliveries", deliveryRoutes);
 
 app.listen(PORT, () => {
   connectDB();

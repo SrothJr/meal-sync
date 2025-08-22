@@ -6,12 +6,17 @@ const API_URL =
     ? "http://localhost:5000/api/users"
     : "/api/users";
 
+const DELIVERY_API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/deliveries"
+    : "/api/deliveries";
+
 axios.defaults.withCredentials = true;
 
 export const useUserStore = create((set) => ({
   chefs: [],
   profile: null,
-  chefDashboardMeals: { today: [], tomorrow: [], nextWeek: [] }, // New state
+  chefDashboardMeals: { today: [], tomorrow: [], nextWeek: [] },
   isLoading: false,
   error: null,
 
@@ -62,7 +67,7 @@ export const useUserStore = create((set) => ({
     }
   },
 
-  fetchChefDashboardMeals: async () => { // New function
+  fetchChefDashboardMeals: async () => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.get(`${API_URL}/dashboard-meals`);
@@ -71,6 +76,21 @@ export const useUserStore = create((set) => ({
     } catch (error) {
       set({
         error: error.response?.data?.message || "Error fetching chef dashboard meals",
+        isLoading: false,
+      });
+      throw new Error(error.response?.data?.message);
+    }
+  },
+
+  markMealAsDelivered: async (mealDetails) => { // New function
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${DELIVERY_API_URL}/mark-delivered`, mealDetails);
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Error marking meal as delivered",
         isLoading: false,
       });
       throw new Error(error.response?.data?.message);
