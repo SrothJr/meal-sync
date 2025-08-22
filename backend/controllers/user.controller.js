@@ -1,4 +1,6 @@
 import { User } from "../models/user.model.js";
+import Subscription from "../models/subscription.model.js";
+import Menu from "../models/menu.model.js";
 
 export const findChefsInArea = async (req, res) => {
   try {
@@ -69,6 +71,118 @@ export const updateUserProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in updateUserProfile: ", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+export const getChefDashboardMeals = async (req, res) => {
+  try {
+    const chefId = req.userId;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const endOfNextWeek = new Date(today);
+    endOfNextWeek.setDate(endOfNextWeek.getDate() + 7); // Covers 7 days from today (inclusive)
+
+    const activeSubscriptions = await Subscription.find({
+      chef: chefId,
+      status: "active",
+      endDate: { $gte: today }, // Subscription must end today or in the future
+    }).populate("menu", "schedule")
+      .populate("subscriber", "name"); // Populate subscriber name for display
+
+    const mealsToday = {};
+    const mealsTomorrow = {};
+    const mealsNextWeek = {}; // This will aggregate for the next 7 days
+
+    activeSubscriptions.forEach(sub => {
+      // Iterate through each day from today up to endOfNextWeek
+      for (let d = new Date(today); d <= endOfNextWeek; d.setDate(d.getDate() + 1)) {
+        const currentDayOfWeek = d.toLocaleDateString('en-US', { weekday: 'long' });
+
+        // Check if the subscription is active on this specific day
+        if (d >= sub.startDate && d <= sub.endDate) {
+          sub.selection.forEach(selectedDay => {
+            if (selectedDay.day === currentDayOfWeek) {
+              selectedDay.mealTypes.forEach(mealType => {
+                const menuItem = sub.menu.schedule.find(
+                  item => item.day === currentDayOfWeek && item.mealType === mealType
+                );
+
+                if (menuItem) {
+                  const mealKey = `${currentDayOfWeek}-${mealType}-${menuItem.name}`;
+
+                  if (isSameDay(d, today)) {
+                    mealsToday[mealKey] = mealsToday[mealKey] || {
+                      day: currentDayOfWeek,
+                      mealType: mealType,
+                      itemName: menuItem.name,
+                      quantity: 0,
+                      subscribers: [],
+                      price: menuItem.price,
+                    };
+                    mealsToday[mealKey].quantity += 1;
+                    mealsToday[mealKey].subscribers.push({
+                      id: sub.subscriber._id,
+                      name: sub.subscriber.name,
+                    });
+                  } else if (isSameDay(d, tomorrow)) {
+                    mealsTomorrow[mealKey] = mealsTomorrow[mealKey] || {
+                      day: currentDayOfWeek,
+                      mealType: mealType,
+                      itemName: menuItem.name,
+                      quantity: 0,
+                      subscribers: [],
+                      price: menuItem.price,
+                    };
+                    mealsTomorrow[mealKey].quantity += 1;
+                    mealsTomorrow[mealKey].subscribers.push({
+                      id: sub.subscriber._id,
+                      name: sub.subscriber.name,
+                    });
+                  }
+
+                  // Aggregate for next 7 days (including today and tomorrow)
+                  mealsNextWeek[mealKey] = mealsNextWeek[mealKey] || {
+                    day: currentDayOfWeek,
+                    mealType: mealType,
+                    itemName: menuItem.name,
+                    quantity: 0,
+                    subscribers: [],
+                    price: menuItem.price,
+                  };
+                  mealsNextWeek[mealKey].quantity += 1;
+                  mealsNextWeek[mealKey].subscribers.push({
+                    id: sub.subscriber._id,
+                    name: sub.subscriber.name,
+                  });
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+
+    function isSameDay(d1, d2) {
+      return d1.getFullYear() === d2.getFullYear() &&
+             d1.getMonth() === d2.getMonth() &&
+             d1.getDate() === d2.getDate();
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        today: Object.values(mealsToday),
+        tomorrow: Object.values(mealsTomorrow),
+        nextWeek: Object.values(mealsNextWeek),
+      },
+    });
+  } catch (error) {
+    console.error("Error in getChefDashboardMeals: ", error);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };

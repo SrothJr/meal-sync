@@ -11,6 +11,7 @@ axios.defaults.withCredentials = true;
 export const useUserStore = create((set) => ({
   chefs: [],
   profile: null,
+  chefDashboardMeals: { today: [], tomorrow: [], nextWeek: [] }, // New state
   isLoading: false,
   error: null,
 
@@ -58,6 +59,21 @@ export const useUserStore = create((set) => ({
       });
 
       throw new Error(error.response.data.message);
+    }
+  },
+
+  fetchChefDashboardMeals: async () => { // New function
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/dashboard-meals`);
+      set({ chefDashboardMeals: response.data.data, isLoading: false });
+      return response.data.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Error fetching chef dashboard meals",
+        isLoading: false,
+      });
+      throw new Error(error.response?.data?.message);
     }
   },
 }));

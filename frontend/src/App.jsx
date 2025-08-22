@@ -16,6 +16,7 @@ import MenuDetailsPage from "./pages/MenuDetailsPage";
 import ChefSubscriptionsPage from "./pages/ChefSubscriptionsPage";
 import MySubscriptionsPage from "./pages/MySubscriptionsPage";
 import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
+import ChefMenusPage from "./pages/ChefMenusPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -157,6 +158,14 @@ function App() {
           element={
             <ProtectRoute>
               <SubscriptionDetailsPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/chefs/:chefId/menus"
+          element={
+            <ProtectRoute>
+              <ChefMenusPage />
             </ProtectRoute>
           }
         />
