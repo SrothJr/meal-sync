@@ -128,10 +128,6 @@ const SubscriptionDetailsPage = () => {
             <p className="text-gray-400 mb-4">No specific meals selected.</p>
           )}
 
-          {console.log("isChef:", isChef)}
-          {console.log("currentSubscription.delivery?.deliveryStatus:", currentSubscription.delivery?.deliveryStatus)}
-          {console.log("deliveryRequests:", deliveryRequests)}
-
           {isChef && (currentSubscription.delivery?.deliveryStatus === 'unassigned' || currentSubscription.delivery?.deliveryStatus === 'pending_approval') && deliveryRequests.length > 0 && (
             <div className="mt-6">
               <h3 className="text-xl font-bold text-white mb-3">Delivery Requests:</h3>

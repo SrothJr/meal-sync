@@ -95,7 +95,6 @@ export const getChefDashboardMeals = async (req, res) => {
     const endOfNextWeek = new Date(today);
     endOfNextWeek.setDate(endOfNextWeek.getDate() + 7); // Covers 7 days from today (inclusive)
 
-    console.error("Step 1: Fetching active subscriptions...");
     const activeSubscriptions = await Subscription.find({
       chef: chefId,
       status: "active",
@@ -104,11 +103,9 @@ export const getChefDashboardMeals = async (req, res) => {
       .populate("menu", "schedule")
       .populate("subscriber", "name") // Populate subscriber name for display
       .populate("delivery.deliveryPerson", "name email"); // Populate delivery person details
-    console.error("Step 1 Complete: Active subscriptions fetched.");
 
     const allMeals = [];
 
-    console.error("Step 2: Processing active subscriptions and creating allMeals array...");
     activeSubscriptions.forEach(sub => {
       for (let d = new Date(today); d <= endOfNextWeek; d.setDate(d.getDate() + 1)) {
         const currentDayOfWeek = d.toLocaleDateString('en-US', { weekday: 'long' });
@@ -149,11 +146,9 @@ export const getChefDashboardMeals = async (req, res) => {
         }
       }
     });
-    console.error("Step 2 Complete: allMeals array created. allMeals.length:", allMeals.length);
 
     // Aggregate meals (combine same meals from different subscribers)
     const aggregatedMealsMap = new Map();
-    console.error("Step 3: Aggregating meals...");
     allMeals.forEach(meal => {
       const mealKey = `${meal.deliveryDate}-${meal.day}-${meal.mealType}-${meal.itemName}`;
       if (!aggregatedMealsMap.has(mealKey)) {
@@ -169,36 +164,30 @@ export const getChefDashboardMeals = async (req, res) => {
       aggregatedMeal.subscribers.push(...meal.subscribers);
       aggregatedMeal.subscriptionIds.add(meal.subscriptionId); // Add subscription ID to the set
     });
-    console.error("Step 3 Complete: Meals aggregated. aggregatedMealsMap.size:", aggregatedMealsMap.size);
 
     const finalAggregatedMeals = Array.from(aggregatedMealsMap.values()).map(meal => {
       // Convert Set to Array for easier consumption
       meal.subscriptionIds = Array.from(meal.subscriptionIds);
       return meal;
     });
-    console.error("Step 4: Final aggregated meals array created. finalAggregatedMeals.length:", finalAggregatedMeals.length);
 
 
-    console.error("Step 5: Fetching relevant Delivery records...");
+    // Fetch all relevant Delivery records in one go
     const relevantDeliveryRecords = await Delivery.find({
       chef: chefId,
       deliveryDate: { $gte: today, $lte: endOfNextWeek },
       subscription: { $in: activeSubscriptions.map(sub => sub._id) } // Filter by subscriptions that are active
     });
-    console.error("Step 5 Complete: Relevant Delivery records fetched. relevantDeliveryRecords.length:", relevantDeliveryRecords.length);
 
     // Create a map for quick lookup of delivery records
     const deliveryRecordMap = new Map();
-    console.error("Step 6: Creating delivery record map...");
     relevantDeliveryRecords.forEach(record => {
       const key = `${record.subscription}-${new Date(record.deliveryDate).setHours(0,0,0,0)}-${record.dayOfWeek}-${record.mealType}-${record.itemName}`;
       deliveryRecordMap.set(key, record);
     });
-    console.error("Step 6 Complete: Delivery record map created. deliveryRecordMap.size:", deliveryRecordMap.size);
 
 
     // Apply delivery record status to aggregated meals
-    console.error("Step 7: Applying delivery record status to aggregated meals...");
     finalAggregatedMeals.forEach(meal => {
       const key = `${meal.subscriptionId}-${meal.deliveryDate}-${meal.day}-${meal.mealType}-${meal.itemName}`;
       if (deliveryRecordMap.has(key)) {
@@ -207,7 +196,6 @@ export const getChefDashboardMeals = async (req, res) => {
         meal.deliveryRecordId = record._id; // Store the Delivery record ID
       }
     });
-    console.error("Step 7 Complete: Delivery record status applied.");
 
 
     const finalMealsToday = finalAggregatedMeals.filter(meal => isSameDay(new Date(meal.deliveryDate), today));
@@ -215,7 +203,6 @@ export const getChefDashboardMeals = async (req, res) => {
     const finalMealsNextWeek = finalAggregatedMeals.filter(meal =>
       new Date(meal.deliveryDate) > tomorrow && new Date(meal.deliveryDate) <= endOfNextWeek
     );
-    console.error("Step 8: Meals categorized into today, tomorrow, next week.");
 
     res.status(200).json({
       success: true,
@@ -225,7 +212,6 @@ export const getChefDashboardMeals = async (req, res) => {
         nextWeek: finalMealsNextWeek,
       },
     });
-    console.error("Step 9: Response sent successfully.");
   } catch (error) {
     console.error("Error in getChefDashboardMeals: ", error);
     res.status(500).json({ success: false, message: "Server Error" });

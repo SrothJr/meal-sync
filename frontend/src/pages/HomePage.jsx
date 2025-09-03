@@ -26,13 +26,6 @@ const HomePage = () => {
 
   const handleMarkAsReady = async (mealItem) => {
     try {
-      // Helper function to check if two dates are the same day
-      const isSameDay = (d1, d2) => {
-        return d1.getFullYear() === d2.getFullYear() &&
-               d1.getMonth() === d2.getMonth() &&
-               d1.getDate() === d2.getDate();
-      };
-
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Ensure date is start of day
 
