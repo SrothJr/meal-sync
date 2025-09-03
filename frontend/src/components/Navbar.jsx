@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, User, LayoutDashboard, ChefHat } from "lucide-react";
+import { LogOut, User, LayoutDashboard, ChefHat, Truck } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import useSubscriptionStore from "../store/subscriptionStore";
 import useMenuStore from "../store/menuStore";
@@ -116,6 +116,17 @@ const Navbar = () => {
                   >
                     <ChefHat className="w-4 h-4 mr-2" />
                     My Subscriptions
+                  </Link>
+                </motion.div>
+              )}
+              {user?.role === "deliveryman" && (
+                <motion.div variants={navItemVariants}>
+                  <Link
+                    to="/get-assigned"
+                    className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    Get Assigned
                   </Link>
                 </motion.div>
               )}

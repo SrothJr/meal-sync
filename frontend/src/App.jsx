@@ -17,6 +17,7 @@ import ChefSubscriptionsPage from "./pages/ChefSubscriptionsPage";
 import MySubscriptionsPage from "./pages/MySubscriptionsPage";
 import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
 import ChefMenusPage from "./pages/ChefMenusPage";
+import GetAssignedPage from "./pages/GetAssignedPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -166,6 +167,14 @@ function App() {
           element={
             <ProtectRoute>
               <ChefMenusPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/get-assigned"
+          element={
+            <ProtectRoute>
+              <GetAssignedPage />
             </ProtectRoute>
           }
         />

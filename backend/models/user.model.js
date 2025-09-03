@@ -21,7 +21,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      required: false, //for now
+      required: true,
+      enum: ["client", "chef", "deliveryman"], //for now
     },
     lastLogin: {
       type: Date,

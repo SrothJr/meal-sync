@@ -57,6 +57,31 @@ const subscriptionSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    delivery: {
+      deliveryPerson: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      requests: [
+        {
+          deliveryman: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+          },
+          status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: "pending",
+          },
+          message: String,
+        },
+      ],
+      deliveryStatus: {
+        type: String,
+        enum: ["unassigned", "pending_approval", "assigned"],
+        default: "unassigned",
+      },
+    },
   },
   { timestamps: true }
 );
