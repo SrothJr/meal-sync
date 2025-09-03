@@ -12,9 +12,21 @@ export const getDeliveryOffers = async (req, res) => {
         .json({ success: false, message: "Access denied. Not a deliveryman." });
     }
 
+    // Get the deliveryman's area
+    const deliverymanArea = deliveryman.area;
+
     const availableSubscriptions = await Subscription.find({
       "delivery.deliveryStatus": "unassigned",
-    }).populate("chef", "name area");
+    })
+      .populate({
+        path: "chef",
+        select: "name area",
+        match: { area: deliverymanArea } // Filter by chef's area matching deliveryman's area
+      })
+      .populate("subscriber", "name area"); // Populate subscriber to ensure it's available if needed
+
+    // Filter out subscriptions where the chef's area didn't match (due to populate match)
+    const filteredSubscriptions = availableSubscriptions.filter(sub => sub.chef !== null);
 
     res.status(200).json({ success: true, data: availableSubscriptions });
   } catch (error) {
@@ -317,5 +329,97 @@ export const markMealAsDelivered = async (req, res) => {
         success: false,
         message: "Server Error in markMealAsDelivered",
       });
+  }
+};
+
+export const getDeliverymanDashboardMeals = async (req, res) => {
+  try {
+    const deliverymanId = req.userId;
+    const deliveryman = await User.findById(deliverymanId);
+
+    if (deliveryman.role !== "deliveryman") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Access denied. Not a deliveryman." });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    const deliveries = await Delivery.find({
+      deliveryPerson: deliverymanId,
+      status: { $ne: "delivered" }, // Exclude already delivered meals
+      deliveryDate: { $gte: today }, // Only future or today's deliveries
+    })
+      .populate("subscription", "menu chef subscriber") // Populate relevant subscription details
+      .populate("chef", "name")
+      .populate("subscriber", "name area");
+
+    const todayDeliveries = deliveries.filter(
+      (delivery) => delivery.deliveryDate.toDateString() === today.toDateString()
+    );
+
+    const tomorrowDeliveries = deliveries.filter(
+      (delivery) =>
+        delivery.deliveryDate.toDateString() === tomorrow.toDateString()
+    );
+
+    const nextWeekDeliveries = deliveries.filter(
+      (delivery) => delivery.deliveryDate > tomorrow && delivery.deliveryDate <= nextWeek
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        today: todayDeliveries,
+        tomorrow: tomorrowDeliveries,
+        nextWeek: nextWeekDeliveries,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getDeliverymanDashboardMeals: ", error);
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Server Error in getDeliverymanDashboardMeals",
+      });
+  }
+};
+
+export const cancelDelivery = async (req, res) => {
+  try {
+    const chefId = req.userId;
+    const { deliveryId } = req.params;
+
+    const delivery = await Delivery.findById(deliveryId);
+
+    if (!delivery) {
+      return res.status(404).json({ success: false, message: "Delivery record not found." });
+    }
+
+    // Authorization: Only the chef who created the delivery can cancel it
+    if (delivery.chef.toString() !== chefId) {
+      return res.status(403).json({ success: false, message: "Access denied. You are not authorized to cancel this delivery." });
+    }
+
+    // Prevent cancelling if already delivered
+    if (delivery.status === "delivered") {
+      return res.status(400).json({ success: false, message: "Cannot cancel a delivered meal." });
+    }
+
+    // Delete the delivery record instead of updating its status
+    await Delivery.findByIdAndDelete(deliveryId);
+
+    res.status(200).json({ success: true, message: "Delivery cancelled successfully." });
+  } catch (error) {
+    console.error("Error in cancelDelivery: ", error);
+    res.status(500).json({ success: false, message: "Server Error in cancelDelivery" });
   }
 };

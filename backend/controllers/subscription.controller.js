@@ -369,7 +369,8 @@ export const getSubscriptionById = async (req, res) => {
     const subscription = await Subscription.findById(subscriptionId)
       .populate("subscriber", "name email area")
       .populate("chef", "name email area")
-      .populate("menu", "title schedule"); // Populate schedule for menu details
+      .populate("menu", "title schedule") // Populate schedule for menu details
+      .populate("delivery.deliveryPerson", "name email"); // Add this line
 
     if (!subscription) {
       console.log("Subscription not found for ID:", subscriptionId);

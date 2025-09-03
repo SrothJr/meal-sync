@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import useSubscriptionStore from '../store/subscriptionStore';
 import { useAuthStore } from '../store/authStore';
+import useDeliveryStore from '../store/deliveryStore';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Navbar from '../components/Navbar';
 
@@ -10,6 +11,9 @@ const SubscriptionDetailsPage = () => {
   const { subscriptionId } = useParams();
   const { currentSubscription, fetchSubscriptionById, updateSubscriptionStatus, renewSubscription, isLoading, error } = useSubscriptionStore();
   const { user, isCheckingAuth } = useAuthStore();
+  const { getDeliveryRequests, appointDeliveryman } = useDeliveryStore();
+
+  const [deliveryRequests, setDeliveryRequests] = useState([]);
 
   useEffect(() => {
     const getSubscription = async () => {
@@ -20,7 +24,31 @@ const SubscriptionDetailsPage = () => {
       }
     };
     getSubscription();
-  }, [subscriptionId, fetchSubscriptionById]);
+
+    if (user?.role === 'chef' && subscriptionId) {
+      const fetchRequests = async () => {
+        try {
+          const requests = await getDeliveryRequests(subscriptionId);
+          setDeliveryRequests(requests);
+        } catch (err) {
+          toast.error(err.message);
+        }
+      };
+      fetchRequests();
+    }
+  }, [subscriptionId, fetchSubscriptionById, user?.role, getDeliveryRequests]);
+
+  const handleAppointDeliveryman = async (deliverymanId, requestId) => {
+    if (window.confirm('Are you sure you want to appoint this deliveryman?')) {
+      try {
+        await appointDeliveryman(subscriptionId, deliverymanId, requestId);
+        toast.success('Deliveryman appointed successfully!');
+        await fetchSubscriptionById(subscriptionId); // Re-fetch to update UI
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
+  };
 
   const handleStatusUpdate = async (status) => {
     if (window.confirm(`Are you sure you want to ${status} this subscription?`)) {
@@ -98,6 +126,45 @@ const SubscriptionDetailsPage = () => {
             </ul>
           ) : (
             <p className="text-gray-400 mb-4">No specific meals selected.</p>
+          )}
+
+          {console.log("isChef:", isChef)}
+          {console.log("currentSubscription.delivery?.deliveryStatus:", currentSubscription.delivery?.deliveryStatus)}
+          {console.log("deliveryRequests:", deliveryRequests)}
+
+          {isChef && (currentSubscription.delivery?.deliveryStatus === 'unassigned' || currentSubscription.delivery?.deliveryStatus === 'pending_approval') && deliveryRequests.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-xl font-bold text-white mb-3">Delivery Requests:</h3>
+              {deliveryRequests.map((request) => (
+                <div key={request._id} className="flex justify-between items-center bg-gray-700 p-3 rounded-md mb-2">
+                  <p className="text-gray-300">
+                    {request.deliveryman.name} ({request.deliveryman.email})
+                    {request.message && <span className="text-sm text-gray-400 ml-2"> - "{request.message}"</span>}
+                  </p>
+                  {request.status === 'pending' && (
+                    <button
+                      onClick={() => handleAppointDeliveryman(request.deliveryman._id, request._id)}
+                      disabled={isLoading}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md transition-colors disabled:opacity-50"
+                    >
+                      Appoint
+                    </button>
+                  )}
+                  {request.status === 'approved' && (
+                    <span className="text-green-400">Appointed</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {isChef && currentSubscription.delivery?.deliveryStatus === 'assigned' && (
+            <div className="mt-6">
+              <h3 className="text-xl font-bold text-white mb-3">Assigned Deliveryman:</h3>
+              <p className="text-gray-300">
+                {currentSubscription.delivery.deliveryPerson?.name} ({currentSubscription.delivery.deliveryPerson?.email})
+              </p>
+            </div>
           )}
 
           <div className="mt-6 flex justify-end space-x-2">

@@ -96,4 +96,34 @@ export const useUserStore = create((set) => ({
       throw new Error(error.response?.data?.message);
     }
   },
+
+  markAsReadyForDelivery: async (mealDetails) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.post(`${DELIVERY_API_URL}/ready`, mealDetails);
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to mark meal as ready for delivery",
+        isLoading: false,
+      });
+      throw new Error(error.response?.data?.message);
+    }
+  },
+
+  cancelDelivery: async (deliveryId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.patch(`${DELIVERY_API_URL}/cancel/${deliveryId}`);
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to cancel delivery",
+        isLoading: false,
+      });
+      throw new Error(error.response?.data?.message);
+    }
+  },
 }));

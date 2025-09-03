@@ -6,6 +6,8 @@ import {
   appointDeliveryman,
   markAsReadyForDelivery,
   markMealAsDelivered,
+  getDeliverymanDashboardMeals,
+  cancelDelivery,
 } from "../controllers/delivery.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -40,5 +42,15 @@ router.post("/ready", verifyToken, markAsReadyForDelivery);
 // @desc    Mark a specific meal as delivered for a subscription
 // @access  Private (chef or deliveryman)
 router.post("/mark-delivered", verifyToken, markMealAsDelivered);
+
+// @route   GET /api/deliveries/my-dashboard
+// @desc    Get assigned deliveries for the logged-in deliveryman
+// @access  Private (deliveryman only)
+router.get("/my-dashboard", verifyToken, getDeliverymanDashboardMeals);
+
+// @route   PATCH /api/deliveries/cancel/:deliveryId
+// @desc    Cancel a delivery (chef only)
+// @access  Private (chef only)
+router.patch("/cancel/:deliveryId", verifyToken, cancelDelivery);
 
 export default router;
