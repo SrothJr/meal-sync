@@ -111,6 +111,43 @@ const useSubscriptionStore = create((set, get) => ({
       throw error;
     }
   },
+
+  unassignDeliverymanByChef: async (subscriptionId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.patch(`${API_URL}/${subscriptionId}/unassign/chef`);
+      const updatedSubscription = response.data.data;
+      set((state) => ({
+        chefSubscriptions: state.chefSubscriptions.map((sub) =>
+          sub._id === subscriptionId ? updatedSubscription : sub
+        ),
+        currentSubscription: state.currentSubscription?._id === subscriptionId ? updatedSubscription : state.currentSubscription,
+        isLoading: false,
+      }));
+      return updatedSubscription;
+    } catch (error) {
+      set({ error: error.response?.data?.message || "Failed to unassign deliveryman", isLoading: false });
+      throw error;
+    }
+  },
+
+  updateSubscriptionDeliveryStatus: (subscriptionId) => {
+    set((state) => {
+      if (state.currentSubscription && state.currentSubscription._id === subscriptionId) {
+        return {
+          currentSubscription: {
+            ...state.currentSubscription,
+            delivery: {
+              ...state.currentSubscription.delivery,
+              deliveryPerson: null,
+              deliveryStatus: 'unassigned',
+            },
+          },
+        };
+      }
+      return state;
+    });
+  },
 }));
 
 export default useSubscriptionStore;

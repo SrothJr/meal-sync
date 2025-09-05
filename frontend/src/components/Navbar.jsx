@@ -68,15 +68,17 @@ const Navbar = () => {
                   Dashboard
                 </Link>
               </motion.div>
-              <motion.div variants={navItemVariants}>
-                <Link
-                  to="/find-chefs"
-                  className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
-                >
-                  <ChefHat className="w-4 h-4 mr-2" />
-                  Chefs
-                </Link>
-              </motion.div>
+              {user?.role === "client" && (
+                <motion.div variants={navItemVariants}>
+                  <Link
+                    to="/find-chefs"
+                    className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <ChefHat className="w-4 h-4 mr-2" />
+                    Chefs
+                  </Link>
+                </motion.div>
+              )}
               <motion.div variants={navItemVariants}>
                 <Link
                   to="/profile"
@@ -127,6 +129,17 @@ const Navbar = () => {
                   >
                     <Truck className="w-4 h-4 mr-2" />
                     Get Assigned
+                  </Link>
+                </motion.div>
+              )}
+              {user?.role === "deliveryman" && (
+                <motion.div variants={navItemVariants}>
+                  <Link
+                    to="/assigned-deliveries"
+                    className="flex items-center text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  >
+                    <Truck className="w-4 h-4 mr-2" />
+                    My Assigned Deliveries
                   </Link>
                 </motion.div>
               )}

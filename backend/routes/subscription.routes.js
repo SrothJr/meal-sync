@@ -6,6 +6,8 @@ import {
   renewSubscription,
   getMySubscriptions,
   getSubscriptionById,
+  unassignDeliverymanByChef,
+  unassignDeliverymanByDeliveryman,
 } from "../controllers/subscription.controller.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -40,5 +42,23 @@ router.post("/:subscriptionId/renew", verifyToken, renewSubscription);
 // @desc    Get a single subscription by ID (for both chefs and subscribers)
 // @access  Private
 router.get("/:subscriptionId", verifyToken, getSubscriptionById);
+
+// @route   PATCH /api/subscriptions/:subscriptionId/unassign/chef
+// @desc    Chef unassigns a deliveryman from a subscription
+// @access  Private (for chefs)
+router.patch(
+  "/:subscriptionId/unassign/chef",
+  verifyToken,
+  unassignDeliverymanByChef
+);
+
+// @route   PATCH /api/subscriptions/:subscriptionId/unassign/deliveryman
+// @desc    Deliveryman unassigns themselves from a subscription
+// @access  Private (for deliverymen)
+router.patch(
+  "/:subscriptionId/unassign/deliveryman",
+  verifyToken,
+  unassignDeliverymanByDeliveryman
+);
 
 export default router;

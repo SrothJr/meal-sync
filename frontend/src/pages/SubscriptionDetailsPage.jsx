@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import useSubscriptionStore from '../store/subscriptionStore';
@@ -9,23 +9,24 @@ import Navbar from '../components/Navbar';
 
 const SubscriptionDetailsPage = () => {
   const { subscriptionId } = useParams();
-  const { currentSubscription, fetchSubscriptionById, updateSubscriptionStatus, renewSubscription, isLoading, error } = useSubscriptionStore();
+  const { currentSubscription, fetchSubscriptionById, updateSubscriptionStatus, renewSubscription, unassignDeliverymanByChef, isLoading, error } = useSubscriptionStore();
   const { user, isCheckingAuth } = useAuthStore();
   const { getDeliveryRequests, appointDeliveryman } = useDeliveryStore();
 
   const [deliveryRequests, setDeliveryRequests] = useState([]);
 
-  useEffect(() => {
-    const getSubscription = async () => {
-      try {
-        await fetchSubscriptionById(subscriptionId);
-      } catch (err) {
-        toast.error(err.message);
-      }
-    };
-    getSubscription();
+  const fetchSubscriptionData = useCallback(async () => {
+    try {
+      await fetchSubscriptionById(subscriptionId);
+    } catch (err) {
+      toast.error(err.message);
+    }
+  }, [subscriptionId, fetchSubscriptionById]);
 
-    if (user?.role === 'chef' && subscriptionId) {
+  useEffect(() => {
+    fetchSubscriptionData();
+
+    if (user?.role === 'chef') {
       const fetchRequests = async () => {
         try {
           const requests = await getDeliveryRequests(subscriptionId);
@@ -36,7 +37,15 @@ const SubscriptionDetailsPage = () => {
       };
       fetchRequests();
     }
-  }, [subscriptionId, fetchSubscriptionById, user?.role, getDeliveryRequests]);
+
+    // Add event listener to re-fetch data when the window is focused
+    window.addEventListener('focus', fetchSubscriptionData);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('focus', fetchSubscriptionData);
+    };
+  }, [subscriptionId, user?.role, getDeliveryRequests, fetchSubscriptionData]);
 
   const handleAppointDeliveryman = async (deliverymanId, requestId) => {
     if (window.confirm('Are you sure you want to appoint this deliveryman?')) {
@@ -66,6 +75,18 @@ const SubscriptionDetailsPage = () => {
       try {
         await renewSubscription(subscriptionId);
         toast.success('Subscription renewed successfully');
+      } catch (err) {
+        toast.error(err.message);
+      }
+    }
+  };
+
+  const handleUnassignDeliveryman = async () => {
+    if (window.confirm('Are you sure you want to unassign this deliveryman?')) {
+      try {
+        await unassignDeliverymanByChef(subscriptionId);
+        toast.success('Deliveryman unassigned successfully!');
+        await fetchSubscriptionById(subscriptionId); // Re-fetch to update UI
       } catch (err) {
         toast.error(err.message);
       }
@@ -160,6 +181,13 @@ const SubscriptionDetailsPage = () => {
               <p className="text-gray-300">
                 {currentSubscription.delivery.deliveryPerson?.name} ({currentSubscription.delivery.deliveryPerson?.email})
               </p>
+              <button
+                onClick={handleUnassignDeliveryman}
+                disabled={isLoading}
+                className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50"
+              >
+                Unassign Deliveryman
+              </button>
             </div>
           )}
 

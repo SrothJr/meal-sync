@@ -18,6 +18,7 @@ import MySubscriptionsPage from "./pages/MySubscriptionsPage";
 import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
 import ChefMenusPage from "./pages/ChefMenusPage";
 import GetAssignedPage from "./pages/GetAssignedPage";
+import AssignedDeliveriesPage from "./pages/AssignedDeliveriesPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -175,6 +176,14 @@ function App() {
           element={
             <ProtectRoute>
               <GetAssignedPage />
+            </ProtectRoute>
+          }
+        />
+        <Route
+          path="/assigned-deliveries"
+          element={
+            <ProtectRoute>
+              <AssignedDeliveriesPage />
             </ProtectRoute>
           }
         />

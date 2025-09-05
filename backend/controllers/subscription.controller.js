@@ -404,3 +404,61 @@ export const getSubscriptionById = async (req, res) => {
     });
   }
 };
+
+export const unassignDeliverymanByChef = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const chefId = req.userId;
+
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: "Subscription not found." });
+    }
+
+    if (subscription.chef.toString() !== chefId) {
+      return res.status(403).json({ success: false, message: "Access denied. You are not the chef for this subscription." });
+    }
+
+    if (!subscription.delivery.deliveryPerson) {
+      return res.status(400).json({ success: false, message: "No delivery person assigned to this subscription." });
+    }
+
+    subscription.delivery.deliveryPerson = null;
+    subscription.delivery.deliveryStatus = "unassigned";
+    subscription.delivery.requests = [];
+    await subscription.save();
+
+    res.status(200).json({ success: true, message: "Deliveryman unassigned successfully." });
+  } catch (error) {
+    console.error("Error in unassignDeliverymanByChef: ", error);
+    res.status(500).json({ success: false, message: "Server Error in unassignDeliverymanByChef" });
+  }
+};
+
+export const unassignDeliverymanByDeliveryman = async (req, res) => {
+  try {
+    const { subscriptionId } = req.params;
+    const deliverymanId = req.userId;
+
+    const subscription = await Subscription.findById(subscriptionId);
+
+    if (!subscription) {
+      return res.status(404).json({ success: false, message: "Subscription not found." });
+    }
+
+    if (!subscription.delivery.deliveryPerson || subscription.delivery.deliveryPerson.toString() !== deliverymanId) {
+      return res.status(403).json({ success: false, message: "Access denied. You are not the assigned deliveryman for this subscription." });
+    }
+
+    subscription.delivery.deliveryPerson = null;
+    subscription.delivery.deliveryStatus = "unassigned";
+    subscription.delivery.requests = [];
+    await subscription.save();
+
+    res.status(200).json({ success: true, message: "You have successfully unassigned yourself from this delivery." });
+  } catch (error) {
+    console.error("Error in unassignDeliverymanByDeliveryman: ", error);
+    res.status(500).json({ success: false, message: "Server Error in unassignDeliverymanByDeliveryman" });
+  }
+};

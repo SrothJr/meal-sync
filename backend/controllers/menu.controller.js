@@ -3,7 +3,7 @@ import { User } from "../models/user.model.js";
 
 export const createMenu = async (req, res) => {
   try {
-    const { title, description, schedule } = req.body;
+    const { title, description, schedule, coverImage } = req.body;
     const chefId = req.userId;
 
     const user = await User.findById(chefId).select("-password");
@@ -22,6 +22,7 @@ export const createMenu = async (req, res) => {
       title,
       description,
       schedule,
+      coverImage,
     });
     await menu.save();
 
@@ -39,7 +40,7 @@ export const createMenu = async (req, res) => {
 export const updateMenu = async (req, res) => {
   try {
     const { menuId } = req.params;
-    const { title, description, schedule } = req.body;
+    const { title, description, schedule, coverImage } = req.body;
     const chefId = req.userId;
 
     const menu = await Menu.findById(menuId);
@@ -58,6 +59,7 @@ export const updateMenu = async (req, res) => {
 
     menu.title = title || menu.title;
     menu.description = description || menu.description;
+    menu.coverImage = coverImage || menu.coverImage;
     if (schedule) {
       menu.schedule = schedule;
     }

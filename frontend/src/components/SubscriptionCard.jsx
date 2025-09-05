@@ -2,14 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom'; // Import Link
 import { toast } from 'react-hot-toast';
 import useSubscriptionStore from '../store/subscriptionStore';
+import useDeliveryStore from '../store/deliveryStore';
 import { useAuthStore } from '../store/authStore';
 
 const SubscriptionCard = ({ subscription }) => {
   const {
     updateSubscriptionStatus,
     renewSubscription,
-    isLoading,
+    isLoading: isSubscriptionLoading,
   } = useSubscriptionStore();
+  const { unassignDeliverymanByChef, isLoading: isDeliveryLoading } = useDeliveryStore();
   const { user } = useAuthStore();
 
   const handleStatusUpdate = async (status) => {
@@ -34,8 +36,21 @@ const SubscriptionCard = ({ subscription }) => {
     }
   };
 
+  const handleUnassign = async () => {
+    if (window.confirm('Are you sure you want to unassign the deliveryman?')) {
+      try {
+        await unassignDeliverymanByChef(subscription._id);
+        toast.success('Deliveryman unassigned successfully');
+        // Optionally, you can re-fetch the subscription data to update the UI
+      } catch (error) {
+        toast.error(error.message);
+      }
+    }
+  };
+
   const isChef = user?.role === 'chef';
   const isClient = user?.role === 'client';
+  const isLoading = isSubscriptionLoading || isDeliveryLoading;
 
   return (
     <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg overflow-hidden border border-gray-700 hover:border-green-500 transition-all duration-300 transform hover:-translate-y-1 p-6 mb-4">
@@ -58,6 +73,10 @@ const SubscriptionCard = ({ subscription }) => {
             <button onClick={() => handleStatusUpdate('active')} disabled={isLoading} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50">Approve</button>
             <button onClick={() => handleStatusUpdate('rejected')} disabled={isLoading} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50">Reject</button>
           </>
+        )}
+
+        {isChef && subscription.delivery?.deliveryPerson && (
+          <button onClick={handleUnassign} disabled={isLoading} className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-md transition-colors disabled:opacity-50">Unassign Deliveryman</button>
         )}
 
         {isClient && (

@@ -13,6 +13,7 @@ const Schedule = ({ schedule, openAddModal, openEditModal, handleDeleteItem, isC
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Day</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Meal Type</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Item</th>
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Photo</th>
             <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Price</th>
             {isChefView && <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>}
           </tr>
@@ -26,6 +27,14 @@ const Schedule = ({ schedule, openAddModal, openEditModal, handleDeleteItem, isC
                   <td className="px-6 py-4 whitespace-nowrap">{day}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{mealType}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{item?.name || '-'}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {item?.photo && (
+                      <>
+                        {console.log('Photo URL:', item.photo)}
+                        <img src={item.photo} alt={item.name} className="w-16 h-16 object-cover rounded-md" />
+                      </>
+                    )}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{item?.price ? `${item.price.toFixed(2)}` : '-'}</td>
                   {isChefView && (
                     <td className="px-6 py-4 whitespace-nowrap">

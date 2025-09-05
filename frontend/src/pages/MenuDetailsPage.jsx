@@ -134,6 +134,12 @@ const MenuDetailsPage = () => {
           </h1>
         </div>
 
+        {menuData.coverImage && (
+          <div className="max-w-3xl mx-auto mb-8">
+            <img src={menuData.coverImage} alt={menuData.title} className="w-full h-64 object-cover rounded-lg shadow-lg" />
+          </div>
+        )}
+
         {user?.role === "chef" && (
           <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6 max-w-3xl mx-auto">
             <h2 className="text-2xl font-bold mb-4 text-white">Edit Menu</h2>

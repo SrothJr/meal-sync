@@ -5,6 +5,7 @@ const ScheduleItemFormModal = ({ isOpen, onClose, onSubmit, item }) => {
     name: '',
     description: '',
     price: '',
+    photo: '',
   });
 
   useEffect(() => {
@@ -13,12 +14,14 @@ const ScheduleItemFormModal = ({ isOpen, onClose, onSubmit, item }) => {
         name: item.name || '',
         description: item.description || '',
         price: item.price || '',
+        photo: item.photo || '',
       });
     } else {
       setFormData({
         name: '',
         description: '',
         price: '',
+        photo: '',
       });
     }
   }, [item, isOpen]); // Reset form when item changes or modal opens
@@ -51,6 +54,10 @@ const ScheduleItemFormModal = ({ isOpen, onClose, onSubmit, item }) => {
           <div>
             <label htmlFor="price" className="block text-sm font-medium text-gray-300">Price</label>
             <input type="number" name="price" id="price" value={formData.price} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
+          </div>
+          <div>
+            <label htmlFor="photo" className="block text-sm font-medium text-gray-300">Photo URL</label>
+            <input type="text" name="photo" id="photo" value={formData.photo} onChange={handleChange} className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />
           </div>
           <div className="flex justify-end space-x-4">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-md text-white bg-gray-600 hover:bg-gray-700">Cancel</button>

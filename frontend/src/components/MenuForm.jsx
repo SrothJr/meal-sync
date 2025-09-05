@@ -9,6 +9,7 @@ const MenuForm = ({ menu }) => {
   const [formData, setFormData] = useState({
     title: menu?.title || '',
     description: menu?.description || '',
+    coverImage: menu?.coverImage || '',
   });
 
   const handleChange = (e) => {
@@ -57,6 +58,19 @@ const MenuForm = ({ menu }) => {
           rows="3"
           className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
         ></textarea>
+      </div>
+      <div>
+        <label htmlFor="coverImage" className="block text-sm font-medium text-gray-300">
+          Cover Image URL
+        </label>
+        <input
+          type="text"
+          name="coverImage"
+          id="coverImage"
+          value={formData.coverImage}
+          onChange={handleChange}
+          className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        />
       </div>
       <button
         type="submit"

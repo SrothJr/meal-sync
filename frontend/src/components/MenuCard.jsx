@@ -19,6 +19,9 @@ const MenuCard = ({ menu, isClientView }) => {
 
   return (
     <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg overflow-hidden border border-gray-700 hover:border-green-500 transition-all duration-300 transform hover:-translate-y-1 p-6 mb-4">
+      {menu.coverImage && (
+        <img src={menu.coverImage} alt={menu.title} className="w-full h-48 object-cover mb-4 rounded-lg" />
+      )}
       <h2 className="text-xl font-bold text-white mb-2">{menu.title}</h2>
       <p className="text-gray-300 mb-4">{menu.description}</p>
       <div className="mt-4 flex justify-end space-x-2">

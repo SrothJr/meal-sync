@@ -22,6 +22,7 @@ const menuItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   price: { type: Number, required: true, min: 0 },
+  photo: { type: String, default: '' },
 });
 
 const menuSchema = new mongoose.Schema(
@@ -33,6 +34,7 @@ const menuSchema = new mongoose.Schema(
     },
     title: { type: String, required: true },
     description: { type: String, required: true },
+    coverImage: { type: String, default: '' },
     schedule: [menuItemSchema],
   },
   { timestamps: true }

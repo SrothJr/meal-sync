@@ -16,7 +16,7 @@ export const getDeliveryOffers = async (req, res) => {
     const deliverymanArea = deliveryman.area;
 
     const availableSubscriptions = await Subscription.find({
-      "delivery.deliveryStatus": "unassigned",
+      "delivery.deliveryStatus": { $in: ["unassigned", "pending_approval"] },
     })
       .populate({
         path: "chef",
@@ -28,7 +28,7 @@ export const getDeliveryOffers = async (req, res) => {
     // Filter out subscriptions where the chef's area didn't match (due to populate match)
     const filteredSubscriptions = availableSubscriptions.filter(sub => sub.chef !== null);
 
-    res.status(200).json({ success: true, data: availableSubscriptions });
+    res.status(200).json({ success: true, data: filteredSubscriptions });
   } catch (error) {
     console.error("Error in getDeliveryOffers: ", error);
     res
@@ -156,11 +156,14 @@ export const appointDeliveryman = async (req, res) => {
     subscription.delivery.deliveryPerson = deliverymanId;
     subscription.delivery.deliveryStatus = "assigned";
 
-    // Update the status of the approved request
-    const request = subscription.delivery.requests.id(requestId);
-    if (request) {
-      request.status = "approved";
-    }
+    // Update the status of all requests
+    subscription.delivery.requests.forEach(request => {
+      if (request._id.toString() === requestId) {
+        request.status = "approved";
+      } else {
+        request.status = "rejected";
+      }
+    });
 
     await subscription.save();
 
@@ -178,6 +181,7 @@ export const appointDeliveryman = async (req, res) => {
       .json({ success: false, message: "Server Error in appointDeliveryman" });
   }
 };
+
 
 // For Chefs: Mark a meal as ready for delivery
 export const markAsReadyForDelivery = async (req, res) => {
@@ -421,5 +425,29 @@ export const cancelDelivery = async (req, res) => {
   } catch (error) {
     console.error("Error in cancelDelivery: ", error);
     res.status(500).json({ success: false, message: "Server Error in cancelDelivery" });
+  }
+};
+
+export const getAssignedDeliveries = async (req, res) => {
+  try {
+    const deliverymanId = req.userId;
+
+    const deliveryman = await User.findById(deliverymanId);
+    if (deliveryman.role !== "deliveryman") {
+      return res.status(403).json({ success: false, message: "Access denied. Not a deliveryman." });
+    }
+
+    const assignedSubscriptions = await Subscription.find({
+      "delivery.deliveryPerson": deliverymanId,
+      "delivery.deliveryStatus": "assigned",
+    })
+      .populate("chef", "name email area")
+      .populate("subscriber", "name email area")
+      .populate("menu", "title");
+
+    res.status(200).json({ success: true, data: assignedSubscriptions });
+  } catch (error) {
+    console.error("Error in getAssignedDeliveries: ", error);
+    res.status(500).json({ success: false, message: "Server Error in getAssignedDeliveries" });
   }
 };

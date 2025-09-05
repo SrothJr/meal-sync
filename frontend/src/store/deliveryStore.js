@@ -1,16 +1,23 @@
 import { create } from "zustand";
 import axios from "axios";
+import useSubscriptionStore from "./subscriptionStore";
 
 const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000/api/deliveries"
     : "/api/deliveries";
 
+const SUBSCRIPTION_API_URL =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:5000/api/subscriptions"
+    : "/api/subscriptions";
+
 axios.defaults.withCredentials = true;
 
 const useDeliveryStore = create((set) => ({
   deliveryOffers: [],
   deliverymanDashboardMeals: { today: [], tomorrow: [], nextWeek: [] },
+  assignedDeliveries: [], // New state for assigned deliveries
   isLoading: false,
   error: null,
 
@@ -108,6 +115,57 @@ const useDeliveryStore = create((set) => ({
     } catch (error) {
       set({
         error: error.response?.data?.message || "Failed to appoint deliveryman",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  fetchAssignedDeliveries: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(`${API_URL}/assigned`);
+      set({ assignedDeliveries: response.data.data, isLoading: false });
+      return response.data.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to fetch assigned deliveries",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  unassignDeliverymanByDeliveryman: async (subscriptionId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.patch(`${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/deliveryman`);
+      set((state) => ({
+        assignedDeliveries: state.assignedDeliveries.filter(
+          (sub) => sub._id !== subscriptionId
+        ),
+        isLoading: false,
+      }));
+      useSubscriptionStore.getState().updateSubscriptionDeliveryStatus(subscriptionId);
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to unassign from delivery",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  unassignDeliverymanByChef: async (subscriptionId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.patch(`${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/chef`);
+      set({ isLoading: false });
+      return response.data;
+    } catch (error) {
+      set({
+        error: error.response?.data?.message || "Failed to unassign deliveryman",
         isLoading: false,
       });
       throw error;
