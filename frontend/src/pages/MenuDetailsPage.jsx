@@ -180,7 +180,7 @@ const MenuDetailsPage = () => {
         onSubmit={handleSubmitModal}
         item={selectedItem}
       />
-      {user?.role === "client" && (
+      {user?.role === "client" && isSubscribeModalOpen && (
         <SubscriptionFormModal
           isOpen={isSubscribeModalOpen}
           onClose={() => setIsSubscribeModalOpen(false)}

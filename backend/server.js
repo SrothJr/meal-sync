@@ -1,5 +1,8 @@
-import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
+
+import express from "express";
+import Stripe from 'stripe';
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -9,9 +12,11 @@ import userRoutes from "./routes/user.routes.js";
 import menuRoutes from "./routes/menu.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
-dotenv.config();
+import paymentRoutes from "./routes/payment.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 
@@ -22,6 +27,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/menus", menuRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/deliveries", deliveryRoutes);
+app.use("/api/payment", paymentRoutes);
 
 app.listen(PORT, () => {
   connectDB();
