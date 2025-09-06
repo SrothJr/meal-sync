@@ -12,15 +12,35 @@ import { toast } from "react-hot-toast";
 const HomePage = () => {
   // Helper function to check if two dates are the same day
   const isSameDay = (d1, d2) => {
-    return d1.getFullYear() === d2.getFullYear() &&
-           d1.getMonth() === d2.getMonth() &&
-           d1.getDate() === d2.getDate();
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
   };
 
   const { user } = useAuthStore();
-  const { menus, fetchMenusByArea, isLoading: menuLoading, error: menuError } = useMenuStore();
-  const { chefDashboardMeals, fetchChefDashboardMeals, markAsReadyForDelivery, cancelDelivery, isLoading: userLoading, error: userError } = useUserStore();
-  const { deliverymanDashboardMeals, fetchDeliverymanDashboardMeals, markMealAsDelivered, isLoading: deliveryLoading, error: deliveryError } = useDeliveryStore();
+  const {
+    menus,
+    fetchMenusByArea,
+    isLoading: menuLoading,
+    error: menuError,
+  } = useMenuStore();
+  const {
+    chefDashboardMeals,
+    fetchChefDashboardMeals,
+    markAsReadyForDelivery,
+    cancelDelivery,
+    isLoading: userLoading,
+    error: userError,
+  } = useUserStore();
+  const {
+    deliverymanDashboardMeals,
+    fetchDeliverymanDashboardMeals,
+    markMealAsDelivered,
+    isLoading: deliveryLoading,
+    error: deliveryError,
+  } = useDeliveryStore();
   const [loadingMenus, setLoadingMenus] = useState(false);
   const [deliveredMeals, setDeliveredMeals] = useState({});
 
@@ -38,10 +58,14 @@ const HomePage = () => {
         quantity: mealItem.quantity,
       });
 
-      toast.success(`Meal "${mealItem.itemName}" for ${mealItem.day} ${mealItem.mealType} marked as ready for delivery!`);
+      toast.success(
+        `Meal "${mealItem.itemName}" for ${mealItem.day} ${mealItem.mealType} marked as ready for delivery!`
+      );
       fetchChefDashboardMeals(); // Re-fetch dashboard meals to update the UI
     } catch (error) {
-      toast.error(error.message || "Failed to mark meal as ready for delivery.");
+      toast.error(
+        error.message || "Failed to mark meal as ready for delivery."
+      );
     }
   };
 
@@ -84,7 +108,7 @@ const HomePage = () => {
   const getDayOfWeek = (offset = 0) => {
     const date = new Date();
     date.setDate(date.getDate() + offset);
-    return date.toLocaleDateString('en-US', { weekday: 'long' });
+    return date.toLocaleDateString("en-US", { weekday: "long" });
   };
 
   const handleMarkAsDelivered = async (deliveryId) => {
@@ -97,50 +121,87 @@ const HomePage = () => {
     }
   };
 
-  const renderMealList = (meals, title, showChefButton = false, isDeliverymanView = false, loadingState = false) => (
+  const renderMealList = (
+    meals,
+    title,
+    showChefButton = false,
+    isDeliverymanView = false,
+    loadingState = false
+  ) => (
     <div className="mt-8">
       <h3 className="text-2xl font-bold text-white mb-4">{title}</h3>
       {meals.length > 0 ? (
         <div className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-4">
           {meals.map((meal, index) => {
-            const displayItemName = isDeliverymanView ? meal.itemName : meal.itemName;
-            const displayMealType = isDeliverymanView ? meal.mealType : meal.mealType;
-            const displayQuantity = isDeliverymanView ? meal.quantity : meal.quantity;
-            const displaySubscriberName = isDeliverymanView ? meal.subscriber?.name : meal.subscribers?.map(s => s.name).join(', ');
-            const displayChefName = isDeliverymanView ? meal.chef?.name : '';
+            const displayItemName = isDeliverymanView
+              ? meal.itemName
+              : meal.itemName;
+            const displayMealType = isDeliverymanView
+              ? meal.mealType
+              : meal.mealType;
+            const displayQuantity = isDeliverymanView
+              ? meal.quantity
+              : meal.quantity;
+            const displaySubscriberName = isDeliverymanView
+              ? meal.subscriber?.name
+              : meal.subscribers?.map((s) => s.name).join(", ");
+            const displayChefName = isDeliverymanView ? meal.chef?.name : "";
 
-            const isMealDelivered = isDeliverymanView ? meal.status === 'delivered' : meal.status === 'delivered';
-            const isMealPrepared = isDeliverymanView ? meal.status === 'prepared' : meal.status === 'prepared';
+            const isMealDelivered = isDeliverymanView
+              ? meal.status === "delivered"
+              : meal.status === "delivered";
+            const isMealPrepared = isDeliverymanView
+              ? meal.status === "prepared"
+              : meal.status === "prepared";
 
             return (
-              <div key={index} className="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0">
+              <div
+                key={index}
+                className="flex justify-between items-center py-2 border-b border-gray-700 last:border-b-0"
+              >
                 <div className="text-gray-300">
-                  <p className="font-semibold">{displayItemName} ({displayMealType})</p>
+                  <p className="font-semibold">
+                    {displayItemName} ({displayMealType})
+                  </p>
                   <p className="text-sm">Quantity: {displayQuantity}</p>
-                  {isDeliverymanView && <p className="text-sm">Chef: {displayChefName}</p>}
+                  {isDeliverymanView && (
+                    <p className="text-sm">Chef: {displayChefName}</p>
+                  )}
                   <p className="text-sm">Subscriber: {displaySubscriberName}</p>
                 </div>
-                {showChefButton && user?.role === 'chef' && (
+                {showChefButton && user?.role === "chef" && (
                   <>
-                    {meal.deliveryStatus === 'unprepared' && meal.subscriptionDeliveryStatus === 'assigned' && isSameDay(new Date(meal.deliveryDate), new Date()) && (
+                    {meal.deliveryStatus === "unprepared" &&
+                      meal.subscriptionDeliveryStatus === "assigned" &&
+                      isSameDay(new Date(meal.deliveryDate), new Date()) && (
+                        <button
+                          onClick={() => handleMarkAsReady(meal)}
+                          disabled={loadingState}
+                          className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                            loadingState
+                              ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                              : "bg-green-600 hover:bg-green-700 text-white"
+                          }`}
+                        >
+                          Mark as Ready
+                        </button>
+                      )}
+                    {meal.deliveryStatus === "prepared" && (
                       <button
-                        onClick={() => handleMarkAsReady(meal)}
+                        onClick={() =>
+                          handleCancelDelivery(meal.deliveryRecordId)
+                        }
                         disabled={loadingState}
-                        className={`px-3 py-1 rounded-md text-sm transition-colors ${loadingState ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-                      >
-                        Mark as Ready
-                      </button>
-                    )}
-                    {meal.deliveryStatus === 'prepared' && (
-                      <button
-                        onClick={() => handleCancelDelivery(meal.deliveryRecordId)}
-                        disabled={loadingState}
-                        className={`px-3 py-1 rounded-md text-sm transition-colors ${loadingState ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white'}`}
+                        className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                          loadingState
+                            ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                            : "bg-red-600 hover:bg-red-700 text-white"
+                        }`}
                       >
                         Cancel Delivery
                       </button>
                     )}
-                    {meal.deliveryStatus === 'delivered' && (
+                    {meal.deliveryStatus === "delivered" && (
                       <button
                         disabled
                         className="px-3 py-1 rounded-md text-sm bg-gray-500 text-gray-300 cursor-not-allowed"
@@ -148,26 +209,35 @@ const HomePage = () => {
                         Delivered
                       </button>
                     )}
-                    {meal.subscriptionDeliveryStatus !== 'assigned' && meal.deliveryStatus === 'unprepared' && (
+                    {meal.subscriptionDeliveryStatus !== "assigned" &&
+                      meal.deliveryStatus === "unprepared" && (
+                        <button
+                          disabled
+                          className="px-3 py-1 rounded-md text-sm bg-gray-500 text-gray-300 cursor-not-allowed"
+                        >
+                          Assign Deliveryman
+                        </button>
+                      )}
+                  </>
+                )}
+                {isDeliverymanView && user?.role === "deliveryman" && (
+                  <>
+                    {(meal.status === "pending" ||
+                      meal.status === "prepared" ||
+                      meal.status === "delivered") && (
                       <button
-                        disabled
-                        className="px-3 py-1 rounded-md text-sm bg-gray-500 text-gray-300 cursor-not-allowed"
+                        onClick={() => handleMarkAsDelivered(meal._id)}
+                        disabled={isMealDelivered}
+                        className={`px-3 py-1 rounded-md text-sm transition-colors ${
+                          isMealDelivered
+                            ? "bg-gray-500 text-gray-300 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700 text-white"
+                        }`}
                       >
-                        Assign Deliveryman
+                        {isMealDelivered ? "Delivered" : "Mark as Delivered"}
                       </button>
                     )}
                   </>
-                )}
-                {isDeliverymanView && user?.role === 'deliveryman' && (
-                  <button
-                    onClick={() => handleMarkAsDelivered(meal._id)}
-                    disabled={isMealDelivered}
-                    className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                      isMealDelivered ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 text-white'
-                    }`}
-                  >
-                    {isMealDelivered ? 'Delivered' : 'Mark as Delivered'}
-                  </button>
                 )}
               </div>
             );
@@ -242,9 +312,30 @@ const HomePage = () => {
               <p className="text-red-500 text-center">{userError}</p>
             ) : (
               <>
-                {chefDashboardMeals && renderMealList(chefDashboardMeals.today, `Meals for Today (${getDayOfWeek(0)})`, true, false, userLoading)}
-                {chefDashboardMeals && renderMealList(chefDashboardMeals.tomorrow, `Meals for Tomorrow (${getDayOfWeek(1)})`, true, false, userLoading)}
-                {chefDashboardMeals && renderMealList(chefDashboardMeals.nextWeek, "Meals for Next 7 Days", true, false, userLoading)}
+                {chefDashboardMeals &&
+                  renderMealList(
+                    chefDashboardMeals.today,
+                    `Meals for Today (${getDayOfWeek(0)})`,
+                    true,
+                    false,
+                    userLoading
+                  )}
+                {chefDashboardMeals &&
+                  renderMealList(
+                    chefDashboardMeals.tomorrow,
+                    `Meals for Tomorrow (${getDayOfWeek(1)})`,
+                    true,
+                    false,
+                    userLoading
+                  )}
+                {chefDashboardMeals &&
+                  renderMealList(
+                    chefDashboardMeals.nextWeek,
+                    "Meals for Next 7 Days",
+                    true,
+                    false,
+                    userLoading
+                  )}
               </>
             )}
           </div>
@@ -263,9 +354,30 @@ const HomePage = () => {
               <p className="text-red-500 text-center">{deliveryError}</p>
             ) : (
               <>
-                {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.today, `Deliveries for Today (${getDayOfWeek(0)})`, false, true, deliveryLoading)}
-                {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.tomorrow, `Deliveries for Tomorrow (${getDayOfWeek(1)})`, false, true, deliveryLoading)}
-                {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.nextWeek, "Deliveries for Next 7 Days", false, true, deliveryLoading)}
+                {deliverymanDashboardMeals &&
+                  renderMealList(
+                    deliverymanDashboardMeals.today,
+                    `Deliveries for Today (${getDayOfWeek(0)})`,
+                    false,
+                    true,
+                    deliveryLoading
+                  )}
+                {deliverymanDashboardMeals &&
+                  renderMealList(
+                    deliverymanDashboardMeals.tomorrow,
+                    `Deliveries for Tomorrow (${getDayOfWeek(1)})`,
+                    false,
+                    true,
+                    deliveryLoading
+                  )}
+                {deliverymanDashboardMeals &&
+                  renderMealList(
+                    deliverymanDashboardMeals.nextWeek,
+                    "Deliveries for Next 7 Days",
+                    false,
+                    true,
+                    deliveryLoading
+                  )}
               </>
             )}
           </div>

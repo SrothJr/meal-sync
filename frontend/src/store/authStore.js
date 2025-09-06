@@ -71,6 +71,9 @@ export const useAuthStore = create((set) => ({
         error: null,
         isLoading: false,
       });
+      if (window.chatbase && typeof window.chatbase.close === 'function') {
+        window.chatbase.close();
+      }
     } catch (error) {
       set({ error: "Error logging out", isLoading: false });
       throw error;

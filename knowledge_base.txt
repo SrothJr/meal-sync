@@ -1,0 +1,95 @@
+# Meal Sync Customer and Partner FAQ
+
+This document contains frequently asked questions and answers for users of the Meal Sync platform. It is designed to be used as a knowledge base for a customer support chatbot.
+
+---
+
+## 1. General Questions
+
+**Q: What is Meal Sync?**
+
+A: Meal Sync is an online platform that connects people looking for regular, home-cooked meals with talented home-based cooks in their neighborhood. Subscribers can sign up for weekly or monthly meal plans, and chefs can run their own small business from home.
+
+**Q: How does it work?**
+
+A: It's simple! Subscribers browse menus from chefs in their area, pick a weekly or monthly plan, and select the meals they want. After payment, the chef prepares the meals on the scheduled days, and a delivery person brings them to your door.
+
+**Q: Which areas do you operate in?**
+
+A: Meal Sync is a hyperlocal platform currently operating exclusively within Dhaka. When you sign up, you specify your area to see chefs and menus available near you.
+
+**Q: Is this a food delivery app for single orders?**
+
+A: No, Meal Sync is a subscription-based service. We focus on providing regular meal plans (weekly or monthly) to make your life easier, rather than one-off orders.
+
+---
+
+## 2. For Subscribers (Clients)
+
+**Q: How do I subscribe to a meal plan?**
+
+A: First, sign up as a Client and set your area. Then, browse the menus available from local chefs. When you find one you like, click "Subscribe", choose your meal days (e.g., Monday Lunch, Friday Dinner), select a weekly or monthly plan, and proceed to payment.
+
+**Q: Can I choose exactly which meals I get?**
+
+A: Yes! Our platform allows you to customize your subscription. From the chef's weekly schedule, you can pick and choose the specific days and meal types (Breakfast, Lunch, Dinner) you want to receive.
+
+**Q: How do I pay for my subscription?**
+
+A: We use Stripe, a secure and trusted payment gateway, to process all payments. You can pay with your credit or debit card when you confirm your subscription.
+
+**Q: Can I pause my subscription if I go on vacation?**
+
+A: Absolutely. You can pause your subscription at any time from your "My Subscriptions" dashboard. You can also resume it from the same place when you're ready.
+
+**Q: How do I cancel my subscription?**
+
+A: You can cancel your subscription from your "My Subscriptions" dashboard. Please note the cancellation policy that may apply.
+
+**Q: What if there is a problem with my food or delivery?**
+
+A: Please contact our customer support immediately through the app or website, and we will assist you in resolving the issue with the chef or delivery partner.
+
+---
+
+## 3. For Chefs
+
+**Q: How do I start selling meals on Meal Sync?**
+
+A: We're excited to have you! Sign up on our platform and choose the "Chef" role. After verifying your email, you can complete your profile and start creating your first menu.
+
+**Q: How do I create a menu?**
+
+A: From your Chef Dashboard, go to the menu creation page. You can set a title for your menu and then add items to your weekly schedule. For each day and mealtime (Breakfast, Lunch, Dinner), you can specify the dish name and set a price.
+
+**Q: How do I manage new subscription requests?**
+
+A: When a new client subscribes to your menu, it will appear in your "Chef Subscriptions" page with a "Pending" status. You have the option to review and either "Approve" or "Reject" the request.
+
+**Q: What do I do after I cook a meal?**
+
+A: On your Chef Dashboard, you will see a list of meals to prepare for the day. Once a meal is cooked and packaged, find it on the list and click the "Mark as Ready for Delivery" button. This notifies the assigned delivery person that the meal is ready for pickup.
+
+**Q: How do I get paid?**
+
+A: Payments from subscribers are processed securely via Stripe. Your earnings will be transferred to your connected bank account according to our payment schedule. You can manage your payment details in your profile settings.
+
+---
+
+## 4. For Deliverymen
+
+**Q: How can I sign up to be a deliveryman?**
+
+A: You can register on our website by choosing the "Deliveryman" role during sign-up. After your profile is approved, you will be able to receive delivery assignments.
+
+**Q: How do I know which meals to deliver?**
+
+A: Your Deliveryman Dashboard shows all your assigned deliveries for today, tomorrow, and the next 7 days. It includes details like the meal, the chef's pickup location, and the subscriber's drop-off address.
+
+**Q: When can I mark a meal as delivered?**
+
+A: The "Mark as Delivered" button will become active on your dashboard only after the chef has marked the meal as "prepared". You should only mark it as delivered once you have successfully handed the meal over to the subscriber.
+
+**Q: What information do I see for each delivery?**
+
+A: Each delivery task will show you the meal item, the quantity, the chef's name (for pickup), and the subscriber's name and address (for drop-off).
