@@ -243,7 +243,7 @@ const HomePage = () => {
             ) : (
               <>
                 {chefDashboardMeals && renderMealList(chefDashboardMeals.today, `Meals for Today (${getDayOfWeek(0)})`, true, false, userLoading)}
-                {chefDashboardMeals && renderMealList(chefDashboardMeals.tomorrow, `Meals for Tomorrow (${getDayOfWeek(0)})`, true, false, userLoading)}
+                {chefDashboardMeals && renderMealList(chefDashboardMeals.tomorrow, `Meals for Tomorrow (${getDayOfWeek(1)})`, true, false, userLoading)}
                 {chefDashboardMeals && renderMealList(chefDashboardMeals.nextWeek, "Meals for Next 7 Days", true, false, userLoading)}
               </>
             )}
@@ -264,7 +264,7 @@ const HomePage = () => {
             ) : (
               <>
                 {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.today, `Deliveries for Today (${getDayOfWeek(0)})`, false, true, deliveryLoading)}
-                {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.tomorrow, `Deliveries for Tomorrow (${getDayOfWeek(0)})`, false, true, deliveryLoading)}
+                {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.tomorrow, `Deliveries for Tomorrow (${getDayOfWeek(1)})`, false, true, deliveryLoading)}
                 {deliverymanDashboardMeals && renderMealList(deliverymanDashboardMeals.nextWeek, "Deliveries for Next 7 Days", false, true, deliveryLoading)}
               </>
             )}
