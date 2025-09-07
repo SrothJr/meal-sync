@@ -109,6 +109,13 @@ export const login = async (req, res) => {
         .json({ success: false, message: "User does not exist" });
     }
 
+    // Check if the user is banned
+    if (user.isBanned) {
+      return res
+        .status(403) // 403 Forbidden is the appropriate status code
+        .json({ success: false, message: "Your account has been suspended. Please contact support." });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {

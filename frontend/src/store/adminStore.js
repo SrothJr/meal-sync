@@ -25,4 +25,23 @@ export const useAdminStore = create((set) => ({
       throw new Error(errorMessage);
     }
   },
+
+  toggleUserBanStatus: async (userId) => {
+    try {
+      // Call the new PATCH endpoint on the backend
+      const response = await axios.patch(`${API_URL}/users/${userId}/toggle-ban`);
+      const updatedUser = response.data.data;
+
+      // Update the specific user within the 'users' array in our state
+      set((state) => ({
+        users: state.users.map((user) =>
+          user._id === userId ? updatedUser : user
+        ),
+      }));
+    } catch (error) {
+      // We'll log the error, but you could also set an error state to show a toast notification
+      console.error('Failed to update ban status:', error);
+      throw error;
+    }
+  },
 }));

@@ -1,12 +1,15 @@
 import express from 'express';
-import { getAllUsers } from '../controllers/admin.controller.js';
+// 1. Import the new function
+import { getAllUsers, toggleUserBanStatus } from '../controllers/admin.controller.js';
 import { verifyAdmin } from '../middleware/verifyAdmin.js';
 
 const router = express.Router();
 
 // @route   GET /api/admin/users
-// This route is protected by the verifyAdmin middleware.
-// Only requests with a valid admin token will be able to access it.
 router.get('/users', verifyAdmin, getAllUsers);
+
+// 2. Add the new PATCH route
+// @route   PATCH /api/admin/users/:userId/toggle-ban
+router.patch('/users/:userId/toggle-ban', verifyAdmin, toggleUserBanStatus);
 
 export default router;

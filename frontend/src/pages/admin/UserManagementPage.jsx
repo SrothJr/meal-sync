@@ -1,18 +1,18 @@
-import { useEffect, useState, useMemo } from 'react'; // 1. Import useState and useMemo
+import { useEffect, useState, useMemo } from 'react';
 import { useAdminStore } from '../../store/adminStore';
 import { Loader, ShieldAlert, UserCheck, UserX } from 'lucide-react';
 
 const UserManagementPage = () => {
-  const { users, isLoading, error, getUsers } = useAdminStore();
-  // 2. Add state to manage the current sort configuration
+  // 1. Get the toggleUserBanStatus function from the store
+  const { users, isLoading, error, getUsers, toggleUserBanStatus } = useAdminStore();
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
 
   useEffect(() => {
     getUsers();
   }, [getUsers]);
 
-  // 3. Create a sorted list of users that only recalculates when needed
   const sortedUsers = useMemo(() => {
+    // ... sorting logic is unchanged
     let sortableUsers = [...users];
     if (sortConfig.key !== null) {
       sortableUsers.sort((a, b) => {
@@ -28,6 +28,15 @@ const UserManagementPage = () => {
     return sortableUsers;
   }, [users, sortConfig]);
 
+  const handleBanClick = async (userId) => {
+    try {
+      await toggleUserBanStatus(userId);
+      // Optionally, show a success toast notification here
+    } catch (err) {
+      // Optionally, show an error toast notification here
+      console.error("Failed to update user ban status from component");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -51,7 +60,6 @@ const UserManagementPage = () => {
     <div className="bg-gray-800 p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">User Management</h1>
-        {/* 4. Add UI controls for sorting */}
         <div className="flex items-center space-x-4">
           <label htmlFor="sort-key" className="text-sm font-medium text-gray-300">Sort By:</label>
           <select
@@ -85,10 +93,11 @@ const UserManagementPage = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Role</th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Verified</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-700">
-            {/* Use the new sortedUsers array for rendering */}
             {sortedUsers.map((user) => (
               <tr key={user._id} className="hover:bg-gray-700 transition-colors duration-200">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{user.name}</td>
@@ -100,6 +109,26 @@ const UserManagementPage = () => {
                   ) : (
                     <UserX className="size-5 text-red-400 inline-block" />
                   )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      user.isBanned ? 'bg-red-900 text-red-200' : 'bg-green-900 text-green-200'
+                    }`}
+                  >
+                    {user.isBanned ? 'Banned' : 'Active'}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
+                  <button
+                    onClick={() => handleBanClick(user._id)}
+                    className={`px-4 py-1 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800
+                      ${ user.isBanned
+                        ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                        : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
+                      }`}
+                  >
+                    {user.isBanned ? 'Unban' : 'Ban'}
+                  </button>
                 </td>
               </tr>
             ))}
