@@ -4,6 +4,7 @@ import crypto from "crypto";
 //local
 import { generateVerificationCode } from "../utils/generateVerificationCode.js";
 import { generateVerificationTokenAndSetCookie } from "../utils/generateVerificationTokenAndSetCookie.js";
+import { generateAdminTokenAndSetCookie } from "../utils/generateAdminTokenAndSetCookie.js";
 import {
   sendResetPasswordEmail,
   sendVerificationEmail,
@@ -11,6 +12,7 @@ import {
   sendResetSuccessEmail,
 } from "../mailtrap/emails.js";
 import { User } from "../models/user.model.js";
+import Admin from "../models/admin.model.js";
 
 // SignUp
 export const signup = async (req, res) => {
@@ -134,6 +136,45 @@ export const login = async (req, res) => {
   }
 };
 
+export const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const admin = await Admin.findOne({ email });
+
+    if (!admin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin account not found" });
+    }
+
+    // Plain text password comparison.
+    const isPasswordValid = password === admin.password;
+
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Wrong Password" });
+    }
+
+    generateAdminTokenAndSetCookie(res, admin._id);
+
+    res.status(200).json({
+      success: true,
+      message: "Admin logged in successfully",
+      // Keep frontend consistency with a 'user' object
+      user: {
+        _id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: "admin",
+      },
+    });
+  } catch (error) {
+    console.error("Error in admin login", error);
+    res.status(500).json({ success: false, message: "Error in admin login" });
+  }
+};
+
 export const logout = async (req, res) => {
   res.clearCookie("token");
   res.status(200).json({ success: true, message: "Logged out Successfully" });
@@ -220,17 +261,29 @@ export const resetPassword = async (req, res) => {
 
 export const checkAuth = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    let user;
+    // req.user is now attached by our upgraded verifyToken middleware
+    const { userId, role } = req.user;
+
+    if (role === 'admin') {
+      // If the role is 'admin', find the user in the Admin collection
+      const adminUser = await Admin.findById(userId).select('-password');
+      // If admin is found, manually add the role back for the frontend
+      if (adminUser) {
+        user = { ...adminUser.toObject(), role: 'admin' };
+      }
+    } else {
+      // Otherwise, find the user in the regular User collection
+      user = await User.findById(userId).select('-password');
+    }
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     res.status(200).json({ success: true, user });
   } catch (error) {
-    console.log("Error in checkAuth ", error);
-    res.status(400).json({ success: false, message: error.message });
+    console.error('Error in checkAuth:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
 };

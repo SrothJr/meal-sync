@@ -19,6 +19,9 @@ import SubscriptionDetailsPage from "./pages/SubscriptionDetailsPage";
 import ChefMenusPage from "./pages/ChefMenusPage";
 import GetAssignedPage from "./pages/GetAssignedPage";
 import AssignedDeliveriesPage from "./pages/AssignedDeliveriesPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminLayout from "./pages/admin/AdminLayout";
+import UserManagementPage from "./pages/admin/UserManagementPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -43,6 +46,20 @@ const RedirectAuthenticatedUser = ({ children }) => {
     return <Navigate to="/" replace />;
   }
   return children;
+};
+
+const ProtectAdminRoute = ({ children }) => {
+  const { isAuthenticated, user, isCheckingAuth } = useAuthStore();
+
+  if (isCheckingAuth) {
+    return <LoadingSpinner />;
+  }
+
+  if (isAuthenticated && user?.role === "admin") {
+    return children;
+  }
+
+  return <Navigate to="/admin/login" replace />;
 };
 
 function App() {
@@ -74,6 +91,21 @@ function App() {
             </RedirectAuthenticatedUser>
           }
         />
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectAdminRoute>
+              <AdminLayout />
+            </ProtectAdminRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard" element={<div className='text-white text-2xl'>Admin Dashboard</div>} />
+          <Route path="users" element={<UserManagementPage />} />
+        </Route>
         <Route
           path="/login"
           element={

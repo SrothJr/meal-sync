@@ -13,6 +13,7 @@ import menuRoutes from "./routes/menu.routes.js";
 import subscriptionRoutes from "./routes/subscription.routes.js";
 import deliveryRoutes from "./routes/delivery.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -28,6 +29,7 @@ app.use("/api/menus", menuRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/deliveries", deliveryRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(PORT, () => {
   connectDB();
