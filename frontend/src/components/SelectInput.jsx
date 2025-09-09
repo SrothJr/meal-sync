@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState, useRef, useEffect } from "react";
+import { ChevronDown } from "lucide-react";
 
 const SelectInput = ({ icon: Icon, options, value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef(null);
 
-  const selectedOption = options.find(option => option.value === value) || { label: placeholder, value: '' };
+  const selectedOption = options.find((option) => option.value === value) || {
+    label: placeholder,
+    value: "",
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -14,9 +17,9 @@ const SelectInput = ({ icon: Icon, options, value, onChange, placeholder }) => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -36,7 +39,11 @@ const SelectInput = ({ icon: Icon, options, value, onChange, placeholder }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{selectedOption.label}</span>
-        <ChevronDown className={`size-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`size-5 text-gray-400 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
       </div>
 
       {isOpen && (
@@ -61,9 +68,13 @@ const SelectInput = ({ icon: Icon, options, value, onChange, placeholder }) => {
         tabIndex={-1} // Prevent tabbing to this hidden select
         aria-hidden="true"
       >
-        <option value="" disabled>{placeholder}</option>
+        <option value="" disabled>
+          {placeholder}
+        </option>
         {options.map((option) => (
-          <option key={option.value} value={option.value}>{option.label}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
     </div>

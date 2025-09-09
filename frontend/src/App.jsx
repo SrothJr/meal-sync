@@ -22,6 +22,7 @@ import AssignedDeliveriesPage from "./pages/AssignedDeliveriesPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminLayout from "./pages/admin/AdminLayout";
 import UserManagementPage from "./pages/admin/UserManagementPage";
+import SubscriptionMonitorPage from "./pages/admin/SubscriptionMonitorPage";
 
 import { useAuthStore } from "./store/authStore";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -105,6 +106,7 @@ function App() {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<div className='text-white text-2xl'>Admin Dashboard</div>} />
           <Route path="users" element={<UserManagementPage />} />
+          <Route path="subscriptions" element={<SubscriptionMonitorPage />} />
         </Route>
         <Route
           path="/login"

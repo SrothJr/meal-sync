@@ -2,17 +2,15 @@ import Delivery from "../models/delivery.model.js";
 import Subscription from "../models/subscription.model.js";
 import { User } from "../models/user.model.js";
 
-// For Deliverymen: Get all subscriptions available for delivery
 export const getDeliveryOffers = async (req, res) => {
   try {
-    const deliveryman = await User.findById(req.userId);
+    const deliveryman = await User.findById(req.user.userId);
     if (deliveryman.role !== "deliveryman") {
       return res
         .status(403)
         .json({ success: false, message: "Access denied. Not a deliveryman." });
     }
 
-    // Get the deliveryman's area
     const deliverymanArea = deliveryman.area;
 
     const availableSubscriptions = await Subscription.find({
@@ -21,12 +19,13 @@ export const getDeliveryOffers = async (req, res) => {
       .populate({
         path: "chef",
         select: "name area",
-        match: { area: deliverymanArea } // Filter by chef's area matching deliveryman's area
+        match: { area: deliverymanArea },
       })
-      .populate("subscriber", "name area"); // Populate subscriber to ensure it's available if needed
+      .populate("subscriber", "name area");
 
-    // Filter out subscriptions where the chef's area didn't match (due to populate match)
-    const filteredSubscriptions = availableSubscriptions.filter(sub => sub.chef !== null);
+    const filteredSubscriptions = availableSubscriptions.filter(
+      (sub) => sub.chef !== null
+    );
 
     res.status(200).json({ success: true, data: filteredSubscriptions });
   } catch (error) {
@@ -37,10 +36,9 @@ export const getDeliveryOffers = async (req, res) => {
   }
 };
 
-// For Deliverymen: Request to be assigned to a subscription
 export const requestDelivery = async (req, res) => {
   try {
-    const deliverymanId = req.userId;
+    const deliverymanId = req.user.userId;
     const { subscriptionId } = req.params;
     const { message } = req.body;
 
@@ -58,17 +56,14 @@ export const requestDelivery = async (req, res) => {
         .json({ success: false, message: "Subscription not found." });
     }
 
-    // Check if the deliveryman has already requested this subscription
     const existingRequest = subscription.delivery.requests.find(
       (req) => req.deliveryman.toString() === deliverymanId
     );
     if (existingRequest) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "You have already requested this delivery.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "You have already requested this delivery.",
+      });
     }
 
     subscription.delivery.requests.push({
@@ -90,10 +85,9 @@ export const requestDelivery = async (req, res) => {
   }
 };
 
-// For Chefs: Get all delivery requests for a subscription
 export const getDeliveryRequests = async (req, res) => {
   try {
-    const chefId = req.userId;
+    const chefId = req.user.userId;
     const { subscriptionId } = req.params;
 
     const subscription = await Subscription.findById(subscriptionId).populate(
@@ -108,30 +102,27 @@ export const getDeliveryRequests = async (req, res) => {
     }
 
     if (subscription.chef.toString() !== chefId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You are not the chef for this subscription.",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You are not the chef for this subscription.",
+      });
     }
 
-    res.status(200).json({ success: true, data: subscription.delivery.requests });
+    res
+      .status(200)
+      .json({ success: true, data: subscription.delivery.requests });
   } catch (error) {
     console.error("Error in getDeliveryRequests: ", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server Error in getDeliveryRequests",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getDeliveryRequests",
+    });
   }
 };
 
-// For Chefs: Appoint a deliveryman to a subscription
 export const appointDeliveryman = async (req, res) => {
   try {
-    const chefId = req.userId;
+    const chefId = req.user.userId;
     const { subscriptionId } = req.params;
     const { deliverymanId, requestId } = req.body;
 
@@ -144,20 +135,16 @@ export const appointDeliveryman = async (req, res) => {
     }
 
     if (subscription.chef.toString() !== chefId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You are not the chef for this subscription.",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You are not the chef for this subscription.",
+      });
     }
 
-    // Appoint the deliveryman
     subscription.delivery.deliveryPerson = deliverymanId;
     subscription.delivery.deliveryStatus = "assigned";
 
-    // Update the status of all requests
-    subscription.delivery.requests.forEach(request => {
+    subscription.delivery.requests.forEach((request) => {
       if (request._id.toString() === requestId) {
         request.status = "approved";
       } else {
@@ -167,13 +154,11 @@ export const appointDeliveryman = async (req, res) => {
 
     await subscription.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Deliveryman appointed successfully.",
-        data: subscription,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Deliveryman appointed successfully.",
+      data: subscription,
+    });
   } catch (error) {
     console.error("Error in appointDeliveryman: ", error);
     res
@@ -182,11 +167,9 @@ export const appointDeliveryman = async (req, res) => {
   }
 };
 
-
-// For Chefs: Mark a meal as ready for delivery
 export const markAsReadyForDelivery = async (req, res) => {
   try {
-    const chefId = req.userId;
+    const chefId = req.user.userId;
     const {
       subscriptionId,
       deliveryDate,
@@ -196,7 +179,6 @@ export const markAsReadyForDelivery = async (req, res) => {
       quantity,
     } = req.body;
 
-    // Basic validation
     if (
       !subscriptionId ||
       !deliveryDate ||
@@ -205,9 +187,10 @@ export const markAsReadyForDelivery = async (req, res) => {
       !itemName ||
       !quantity
     ) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Missing required delivery details." });
+      return res.status(400).json({
+        success: false,
+        message: "Missing required delivery details.",
+      });
     }
 
     const subscription = await Subscription.findById(subscriptionId);
@@ -217,23 +200,18 @@ export const markAsReadyForDelivery = async (req, res) => {
         .json({ success: false, message: "Subscription not found." });
     }
     if (subscription.chef.toString() !== chefId) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You are not the chef for this subscription.",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You are not the chef for this subscription.",
+      });
     }
     if (subscription.delivery.deliveryStatus !== "assigned") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "No delivery person assigned to this subscription.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "No delivery person assigned to this subscription.",
+      });
     }
 
-    // Create a new delivery record
     const delivery = new Delivery({
       subscription: subscriptionId,
       chef: chefId,
@@ -244,35 +222,29 @@ export const markAsReadyForDelivery = async (req, res) => {
       mealType,
       itemName,
       quantity,
-      status: "prepared", // New status
+      status: "prepared",
     });
 
     await delivery.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Meal marked as ready for delivery.",
-        data: delivery,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Meal marked as ready for delivery.",
+      data: delivery,
+    });
   } catch (error) {
     console.error("Error in markAsReadyForDelivery: ", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server Error in markAsReadyForDelivery",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in markAsReadyForDelivery",
+    });
   }
 };
 
 export const markMealAsDelivered = async (req, res) => {
   try {
-    const userId = req.userId; // Can be chef or deliveryman
-    const {
-      deliveryId, // We'll use deliveryId to find the delivery record
-    } = req.body;
+    const userId = req.user.userId;
+    const { deliveryId } = req.body;
 
     if (!deliveryId) {
       return res
@@ -290,27 +262,20 @@ export const markMealAsDelivered = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    // Authorization: only the assigned delivery person or the chef can mark as delivered
-    if (
-      user.role !== "chef" &&
-      delivery.deliveryPerson.toString() !== userId
-    ) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Access denied. You are not authorized to perform this action.",
-        });
+    if (user.role !== "chef" && delivery.deliveryPerson.toString() !== userId) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. You are not authorized to perform this action.",
+      });
     }
 
     if (delivery.status === "delivered") {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "Meal already marked as delivered.",
-          data: delivery,
-        });
+      return res.status(200).json({
+        success: true,
+        message: "Meal already marked as delivered.",
+        data: delivery,
+      });
     }
 
     delivery.status = "delivered";
@@ -318,27 +283,23 @@ export const markMealAsDelivered = async (req, res) => {
 
     await delivery.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Meal marked as delivered successfully.",
-        data: delivery,
-      });
+    res.status(200).json({
+      success: true,
+      message: "Meal marked as delivered successfully.",
+      data: delivery,
+    });
   } catch (error) {
     console.error("Error in markMealAsDelivered: ", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server Error in markMealAsDelivered",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in markMealAsDelivered",
+    });
   }
 };
 
 export const getDeliverymanDashboardMeals = async (req, res) => {
   try {
-    const deliverymanId = req.userId;
+    const deliverymanId = req.user.userId;
     const deliveryman = await User.findById(deliverymanId);
 
     if (deliveryman.role !== "deliveryman") {
@@ -358,15 +319,16 @@ export const getDeliverymanDashboardMeals = async (req, res) => {
 
     const deliveries = await Delivery.find({
       deliveryPerson: deliverymanId,
-      status: { $ne: "delivered" }, // Exclude already delivered meals
-      deliveryDate: { $gte: today }, // Only future or today's deliveries
+      status: { $ne: "delivered" },
+      deliveryDate: { $gte: today },
     })
-      .populate("subscription", "menu chef subscriber") // Populate relevant subscription details
+      .populate("subscription", "menu chef subscriber")
       .populate("chef", "name")
       .populate("subscriber", "name area");
 
     const todayDeliveries = deliveries.filter(
-      (delivery) => delivery.deliveryDate.toDateString() === today.toDateString()
+      (delivery) =>
+        delivery.deliveryDate.toDateString() === today.toDateString()
     );
 
     const tomorrowDeliveries = deliveries.filter(
@@ -375,7 +337,8 @@ export const getDeliverymanDashboardMeals = async (req, res) => {
     );
 
     const nextWeekDeliveries = deliveries.filter(
-      (delivery) => delivery.deliveryDate > tomorrow && delivery.deliveryDate <= nextWeek
+      (delivery) =>
+        delivery.deliveryDate > tomorrow && delivery.deliveryDate <= nextWeek
     );
 
     res.status(200).json({
@@ -388,53 +351,62 @@ export const getDeliverymanDashboardMeals = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getDeliverymanDashboardMeals: ", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server Error in getDeliverymanDashboardMeals",
-      });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getDeliverymanDashboardMeals",
+    });
   }
 };
 
 export const cancelDelivery = async (req, res) => {
   try {
-    const chefId = req.userId;
+    const chefId = req.user.userId;
     const { deliveryId } = req.params;
 
     const delivery = await Delivery.findById(deliveryId);
 
     if (!delivery) {
-      return res.status(404).json({ success: false, message: "Delivery record not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Delivery record not found." });
     }
 
-    // Authorization: Only the chef who created the delivery can cancel it
     if (delivery.chef.toString() !== chefId) {
-      return res.status(403).json({ success: false, message: "Access denied. You are not authorized to cancel this delivery." });
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. You are not authorized to cancel this delivery.",
+      });
     }
 
-    // Prevent cancelling if already delivered
     if (delivery.status === "delivered") {
-      return res.status(400).json({ success: false, message: "Cannot cancel a delivered meal." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Cannot cancel a delivered meal." });
     }
 
-    // Delete the delivery record instead of updating its status
     await Delivery.findByIdAndDelete(deliveryId);
 
-    res.status(200).json({ success: true, message: "Delivery cancelled successfully." });
+    res
+      .status(200)
+      .json({ success: true, message: "Delivery cancelled successfully." });
   } catch (error) {
     console.error("Error in cancelDelivery: ", error);
-    res.status(500).json({ success: false, message: "Server Error in cancelDelivery" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error in cancelDelivery" });
   }
 };
 
 export const getAssignedDeliveries = async (req, res) => {
   try {
-    const deliverymanId = req.userId;
+    const deliverymanId = req.user.userId;
 
     const deliveryman = await User.findById(deliverymanId);
     if (deliveryman.role !== "deliveryman") {
-      return res.status(403).json({ success: false, message: "Access denied. Not a deliveryman." });
+      return res
+        .status(403)
+        .json({ success: false, message: "Access denied. Not a deliveryman." });
     }
 
     const assignedSubscriptions = await Subscription.find({
@@ -448,6 +420,9 @@ export const getAssignedDeliveries = async (req, res) => {
     res.status(200).json({ success: true, data: assignedSubscriptions });
   } catch (error) {
     console.error("Error in getAssignedDeliveries: ", error);
-    res.status(500).json({ success: false, message: "Server Error in getAssignedDeliveries" });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in getAssignedDeliveries",
+    });
   }
 };

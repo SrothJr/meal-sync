@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Loader, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 import Input from "../components/Input";
 import { useAuthStore } from "../store/authStore";
@@ -9,18 +9,16 @@ import { useAuthStore } from "../store/authStore";
 const AdminLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // 2. Initialize the navigate function
+  const navigate = useNavigate();
   const { adminLogin, isLoading, error } = useAuthStore();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       await adminLogin(email, password);
-      // 3. On success, navigate to the dashboard
+
       navigate("/admin/dashboard");
     } catch (err) {
-      // The authStore already handles setting the error state.
-      // We just need to catch the error to prevent navigation.
       console.error("Admin login failed:", err);
     }
   };
@@ -56,7 +54,9 @@ const AdminLoginPage = () => {
             />
 
             {error && (
-              <p className="text-red-500 font-semibold my-4 text-center">{error}</p>
+              <p className="text-red-500 font-semibold my-4 text-center">
+                {error}
+              </p>
             )}
             <motion.button
               className="mt-8 w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white

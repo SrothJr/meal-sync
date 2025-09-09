@@ -112,8 +112,11 @@ export const login = async (req, res) => {
     // Check if the user is banned
     if (user.isBanned) {
       return res
-        .status(403) // 403 Forbidden is the appropriate status code
-        .json({ success: false, message: "Your account has been suspended. Please contact support." });
+        .status(403)
+        .json({
+          success: false,
+          message: "Your account has been suspended. Please contact support.",
+        });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -168,7 +171,6 @@ export const adminLogin = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Admin logged in successfully",
-      // Keep frontend consistency with a 'user' object
       user: {
         _id: admin._id,
         name: admin.name,
@@ -198,7 +200,6 @@ export const forgotPassword = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpiresAt = Date.now() + 60 * 60 * 1000; //1 hour
 
@@ -206,8 +207,6 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpiresAt = resetTokenExpiresAt;
 
     await user.save();
-
-    // Send reset link
 
     await sendResetPasswordEmail(
       user.email,
@@ -269,28 +268,28 @@ export const resetPassword = async (req, res) => {
 export const checkAuth = async (req, res) => {
   try {
     let user;
-    // req.user is now attached by our upgraded verifyToken middleware
+
     const { userId, role } = req.user;
 
-    if (role === 'admin') {
-      // If the role is 'admin', find the user in the Admin collection
-      const adminUser = await Admin.findById(userId).select('-password');
-      // If admin is found, manually add the role back for the frontend
+    if (role === "admin") {
+      const adminUser = await Admin.findById(userId).select("-password");
+
       if (adminUser) {
-        user = { ...adminUser.toObject(), role: 'admin' };
+        user = { ...adminUser.toObject(), role: "admin" };
       }
     } else {
-      // Otherwise, find the user in the regular User collection
-      user = await User.findById(userId).select('-password');
+      user = await User.findById(userId).select("-password");
     }
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.status(200).json({ success: true, user });
   } catch (error) {
-    console.error('Error in checkAuth:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    console.error("Error in checkAuth:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

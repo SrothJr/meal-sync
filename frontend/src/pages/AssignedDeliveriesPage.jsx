@@ -1,26 +1,36 @@
-import React, { useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import useDeliveryStore from '../store/deliveryStore';
-import { useAuthStore } from '../store/authStore';
-import LoadingSpinner from '../components/LoadingSpinner';
-import Navbar from '../components/Navbar';
+import React, { useEffect } from "react";
+import { toast } from "react-hot-toast";
+import useDeliveryStore from "../store/deliveryStore";
+import { useAuthStore } from "../store/authStore";
+import LoadingSpinner from "../components/LoadingSpinner";
+import Navbar from "../components/Navbar";
 
 const AssignedDeliveriesPage = () => {
-  const { assignedDeliveries, fetchAssignedDeliveries, unassignDeliverymanByDeliveryman, isLoading, error } = useDeliveryStore();
+  const {
+    assignedDeliveries,
+    fetchAssignedDeliveries,
+    unassignDeliverymanByDeliveryman,
+    isLoading,
+    error,
+  } = useDeliveryStore();
   const { user, isCheckingAuth } = useAuthStore();
 
   useEffect(() => {
-    if (user?.role === 'deliveryman') {
+    if (user?.role === "deliveryman") {
       fetchAssignedDeliveries();
     }
   }, [user, fetchAssignedDeliveries]);
 
   const handleUnassign = async (subscriptionId) => {
-    if (window.confirm('Are you sure you want to unassign yourself from this delivery?')) {
+    if (
+      window.confirm(
+        "Are you sure you want to unassign yourself from this delivery?"
+      )
+    ) {
       try {
         await unassignDeliverymanByDeliveryman(subscriptionId);
-        toast.success('Successfully unassigned from delivery!');
-        fetchAssignedDeliveries(); // Re-fetch the list
+        toast.success("Successfully unassigned from delivery!");
+        fetchAssignedDeliveries();
       } catch (err) {
         toast.error(err.message);
       }
@@ -41,7 +51,7 @@ const AssignedDeliveriesPage = () => {
     );
   }
 
-  if (!user || user.role !== 'deliveryman') {
+  if (!user || user.role !== "deliveryman") {
     return (
       <div className="container mx-auto p-4 text-red-500">
         Access Denied: You must be a deliveryman to view this page.
@@ -61,15 +71,42 @@ const AssignedDeliveriesPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assignedDeliveries.length === 0 ? (
-            <p className="text-white text-center col-span-full">No assigned deliveries found.</p>
+            <p className="text-white text-center col-span-full">
+              No assigned deliveries found.
+            </p>
           ) : (
             assignedDeliveries.map((subscription) => (
-              <div key={subscription._id} className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6">
-                <h2 className="text-2xl font-bold text-white mb-2">{subscription.menu.title}</h2>
-                <p className="text-gray-300 mb-1"><strong>Chef:</strong> {subscription.chef.name}</p>
-                <p className="text-gray-300 mb-1"><strong>Subscriber:</strong> {subscription.subscriber.name}</p>
-                <p className="text-gray-300 mb-1"><strong>Type:</strong> <span className="capitalize">{subscription.subscriptionType}</span></p>
-                <p className="text-gray-300 mb-4"><strong>Status:</strong> <span className={`font-semibold ${subscription.status === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>{subscription.status}</span></p>
+              <div
+                key={subscription._id}
+                className="bg-gray-800 bg-opacity-60 backdrop-blur-md rounded-xl shadow-lg border border-gray-700 p-6"
+              >
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  {subscription.menu.title}
+                </h2>
+                <p className="text-gray-300 mb-1">
+                  <strong>Chef:</strong> {subscription.chef.name}
+                </p>
+                <p className="text-gray-300 mb-1">
+                  <strong>Subscriber:</strong> {subscription.subscriber.name}
+                </p>
+                <p className="text-gray-300 mb-1">
+                  <strong>Type:</strong>{" "}
+                  <span className="capitalize">
+                    {subscription.subscriptionType}
+                  </span>
+                </p>
+                <p className="text-gray-300 mb-4">
+                  <strong>Status:</strong>{" "}
+                  <span
+                    className={`font-semibold ${
+                      subscription.status === "active"
+                        ? "text-green-400"
+                        : "text-yellow-400"
+                    }`}
+                  >
+                    {subscription.status}
+                  </span>
+                </p>
                 <button
                   onClick={() => handleUnassign(subscription._id)}
                   disabled={isLoading}

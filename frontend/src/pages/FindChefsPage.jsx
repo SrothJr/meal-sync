@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { UtensilsCrossed, User, MapPin, Mail } from "lucide-react";
-import { Link } from "react-router-dom"; // Import Link
+import { Link } from "react-router-dom";
 
 import { useUserStore } from "../store/userStore";
 import LoadingSpinner from "../components/LoadingSpinner";
-import Navbar from "../components/Navbar"; // Importing Navbar
+import Navbar from "../components/Navbar";
 
 const FindChefsPage = () => {
   const { chefs, isLoading, error, findChefs } = useUserStore();

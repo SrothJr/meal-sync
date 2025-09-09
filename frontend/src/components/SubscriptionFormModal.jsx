@@ -4,18 +4,16 @@ import Input from "./Input";
 import { toast } from "react-hot-toast";
 import { Calendar } from "lucide-react";
 import useSubscriptionStore from "../store/subscriptionStore";
-import PaymentForm from "./PaymentForm"; // Import the new PaymentForm component
-import axios from "axios"; // Import axios
-import { loadStripe } from "@stripe/stripe-js"; // Import loadStripe
-import { Elements } from "@stripe/react-stripe-js"; // Import Elements
+import PaymentForm from "./PaymentForm";
+import axios from "axios";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
 
 const API_URL =
   import.meta.env.MODE === "development"
     ? "http://localhost:5000/api/payment"
     : "/api/payment";
 
-// Make sure to call loadStripe outside of a component’s render to avoid
-// recreating the Stripe object on every render.
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
@@ -24,25 +22,23 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
   const [subscriptionType, setSubscriptionType] = useState("weekly");
   const [startDate, setStartDate] = useState("");
   const [autoRenew, setAutoRenew] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1); // 1: Selection, 2: Payment
+  const [currentStep, setCurrentStep] = useState(1);
   const [calculatedPrice, setCalculatedPrice] = useState(0);
-  const [clientSecret, setClientSecret] = useState(null); // New state for clientSecret
+  const [clientSecret, setClientSecret] = useState(null);
 
   useEffect(() => {
     if (isOpen) {
-      // Reset state when modal opens
       setSelectedDays({});
       setSubscriptionType("weekly");
       setStartDate("");
       setAutoRenew(false);
       setCurrentStep(1);
       setCalculatedPrice(0);
-      setClientSecret(null); // Reset clientSecret
+      setClientSecret(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    // Calculate price whenever selection, type, or start date changes
     if (menu && Object.keys(selectedDays).length > 0 && startDate) {
       let price = 0;
       const priceLookup = new Map();
@@ -59,9 +55,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
           });
         });
       } else if (subscriptionType === "monthly") {
-        // This is a simplified monthly calculation for mock purposes.
-        // A real monthly calculation would be more complex (e.g., counting weekdays in a month).
-        // For now, let's assume a monthly price is weekly price * 4 for simplicity.
         let weeklyPrice = 0;
         Object.entries(selectedDays).forEach(([day, mealTypes]) => {
           mealTypes.forEach((mealType) => {
@@ -69,7 +62,7 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
             weeklyPrice += priceLookup.get(key) || 0;
           });
         });
-        price = weeklyPrice * 4; // Simplified
+        price = weeklyPrice * 4;
       }
       setCalculatedPrice(price);
       console.log("Calculated Price:", price);
@@ -78,20 +71,22 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
     }
   }, [selectedDays, subscriptionType, startDate, menu]);
 
-  // New useEffect to fetch clientSecret when moving to payment step
   useEffect(() => {
     if (currentStep === 2 && calculatedPrice > 0) {
       const fetchClientSecret = async () => {
         try {
-          const { data } = await axios.post(`${API_URL}/create-payment-intent`, {
-            amount: Math.round(calculatedPrice * 100), // Amount in cents
-          });
-          console.log("Fetched clientSecret from backend:", data.clientSecret); // Log fetched clientSecret
+          const { data } = await axios.post(
+            `${API_URL}/create-payment-intent`,
+            {
+              amount: Math.round(calculatedPrice * 100),
+            }
+          );
+          console.log("Fetched clientSecret from backend:", data.clientSecret);
           setClientSecret(data.clientSecret);
         } catch (error) {
           console.error("Error fetching client secret:", error);
           toast.error("Failed to initialize payment. Please try again.");
-          setCurrentStep(1); // Go back to selection on error
+          setCurrentStep(1);
         }
       };
       fetchClientSecret();
@@ -117,7 +112,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
   };
 
   const handleProceedToPayment = () => {
-    // Check if any day has selected meal types
     const hasSelectedMeals = Object.values(selectedDays).some(
       (mealTypes) => mealTypes.length > 0
     );
@@ -128,11 +122,10 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
       toast.error("Please select at least one meal and a start date.");
       return;
     }
-    setCurrentStep(2); // Move to payment step
+    setCurrentStep(2);
   };
 
   const handlePaymentSuccess = async (paymentIntent) => {
-    // Payment succeeded, now create the subscription
     try {
       const selectionArray = Object.entries(selectedDays).map(
         ([day, mealTypes]) => ({
@@ -147,8 +140,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
         subscriptionType,
         startDate,
         autoRenew,
-        // You might want to pass paymentIntent.id or other details to your backend
-        // for record-keeping, but for mock, it's optional.
       });
       toast.success("Subscription created successfully!");
       onClose();
@@ -161,8 +152,7 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
 
   const handlePaymentError = (errorMessage) => {
     toast.error(`Payment failed: ${errorMessage}`);
-    // Optionally, allow user to retry or go back to selection
-    setCurrentStep(1); // Go back to selection step on error
+    setCurrentStep(1);
   };
 
   const daysOfWeek = [
@@ -182,7 +172,8 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
         <h2 className="text-2xl font-bold mb-4">Subscribe to {menu.title}</h2>
 
         {currentStep === 1 && (
-          <>)
+          <>
+            )
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Subscription Type
@@ -196,7 +187,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
                 onChange={(e) => setSubscriptionType(e.target.value)}
               />
             </div>
-
             <div className="mb-4">
               <label
                 htmlFor="startDate"
@@ -212,7 +202,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
                 className="mt-1 block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
             </div>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Select Meals
@@ -225,7 +214,7 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
                       const menuItem = menu.schedule.find(
                         (item) => item.day === day && item.mealType === mealType
                       );
-                      if (!menuItem) return null; // Only show available meals
+                      if (!menuItem) return null;
 
                       const isChecked =
                         selectedDays[day]?.includes(mealType) || false;
@@ -257,7 +246,6 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
                 </div>
               ))}
             </div>
-
             <div className="mb-4 flex items-center">
               <input
                 type="checkbox"
@@ -273,11 +261,9 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
                 Auto-renew Subscription
               </label>
             </div>
-
             <div className="text-right text-xl font-bold mb-4">
               Total Price: ${calculatedPrice.toFixed(2)}
             </div>
-
             <div className="flex justify-end space-x-4">
               <button
                 type="button"
@@ -301,7 +287,7 @@ const SubscriptionFormModal = ({ isOpen, onClose, menu }) => {
           <div>
             <h3 className="text-xl font-bold mb-4">Payment Details</h3>
             <p className="mb-4">Amount to pay: ${calculatedPrice.toFixed(2)}</p>
-            {clientSecret && typeof clientSecret === 'string' ? (
+            {clientSecret && typeof clientSecret === "string" ? (
               <Elements stripe={stripePromise} options={{ clientSecret }}>
                 <PaymentForm
                   amount={calculatedPrice}

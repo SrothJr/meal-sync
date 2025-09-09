@@ -68,7 +68,7 @@ const MenuDetailsPage = () => {
   };
 
   const openAddModal = (day, mealType) => {
-    setSelectedItem(null); // Clear selected item for add operation
+    setSelectedItem(null);
     setSelectedDay(day);
     setSelectedMealType(mealType);
     setIsModalOpen(true);
@@ -136,7 +136,11 @@ const MenuDetailsPage = () => {
 
         {menuData.coverImage && (
           <div className="max-w-3xl mx-auto mb-8">
-            <img src={menuData.coverImage} alt={menuData.title} className="w-full h-64 object-cover rounded-lg shadow-lg" />
+            <img
+              src={menuData.coverImage}
+              alt={menuData.title}
+              className="w-full h-64 object-cover rounded-lg shadow-lg"
+            />
           </div>
         )}
 

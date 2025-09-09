@@ -17,12 +17,12 @@ const userSchema = new mongoose.Schema(
     },
     area: {
       type: String,
-      required: false, //for now
+      required: false,
     },
     role: {
       type: String,
       required: true,
-      enum: ["client", "chef", "deliveryman"], //for now
+      enum: ["client", "chef", "deliveryman"],
     },
     lastLogin: {
       type: Date,

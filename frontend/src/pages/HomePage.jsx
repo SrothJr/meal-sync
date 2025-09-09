@@ -10,7 +10,6 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { toast } from "react-hot-toast";
 
 const HomePage = () => {
-  // Helper function to check if two dates are the same day
   const isSameDay = (d1, d2) => {
     return (
       d1.getFullYear() === d2.getFullYear() &&
@@ -47,7 +46,7 @@ const HomePage = () => {
   const handleMarkAsReady = async (mealItem) => {
     try {
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Ensure date is start of day
+      today.setHours(0, 0, 0, 0);
 
       await markAsReadyForDelivery({
         subscriptionId: mealItem.subscriptionId,

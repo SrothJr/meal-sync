@@ -75,22 +75,28 @@ export const useUserStore = create((set) => ({
       return response.data.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Error fetching chef dashboard meals",
+        error:
+          error.response?.data?.message ||
+          "Error fetching chef dashboard meals",
         isLoading: false,
       });
       throw new Error(error.response?.data?.message);
     }
   },
 
-  markMealAsDelivered: async (mealDetails) => { // New function
+  markMealAsDelivered: async (mealDetails) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${DELIVERY_API_URL}/mark-delivered`, mealDetails);
+      const response = await axios.post(
+        `${DELIVERY_API_URL}/mark-delivered`,
+        mealDetails
+      );
       set({ isLoading: false });
       return response.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Error marking meal as delivered",
+        error:
+          error.response?.data?.message || "Error marking meal as delivered",
         isLoading: false,
       });
       throw new Error(error.response?.data?.message);
@@ -100,12 +106,17 @@ export const useUserStore = create((set) => ({
   markAsReadyForDelivery: async (mealDetails) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${DELIVERY_API_URL}/ready`, mealDetails);
+      const response = await axios.post(
+        `${DELIVERY_API_URL}/ready`,
+        mealDetails
+      );
       set({ isLoading: false });
       return response.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to mark meal as ready for delivery",
+        error:
+          error.response?.data?.message ||
+          "Failed to mark meal as ready for delivery",
         isLoading: false,
       });
       throw new Error(error.response?.data?.message);
@@ -115,7 +126,9 @@ export const useUserStore = create((set) => ({
   cancelDelivery: async (deliveryId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.patch(`${DELIVERY_API_URL}/cancel/${deliveryId}`);
+      const response = await axios.patch(
+        `${DELIVERY_API_URL}/cancel/${deliveryId}`
+      );
       set({ isLoading: false });
       return response.data;
     } catch (error) {

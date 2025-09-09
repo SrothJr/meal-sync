@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Users, LayoutDashboard, LogOut } from 'lucide-react';
+import { Users, LayoutDashboard, LogOut, ReceiptText } from 'lucide-react'; // Import ReceiptText
 import { useAuthStore } from '../../store/authStore';
 
 const AdminLayout = () => {
@@ -34,6 +34,18 @@ const AdminLayout = () => {
           >
             <Users className="w-5 h-5 mr-3" />
             Users
+          </NavLink>
+          {/* New NavLink for Subscriptions */}
+          <NavLink
+            to="/admin/subscriptions"
+            className={({ isActive }) =>
+              `flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${
+                isActive ? 'bg-green-600 text-white' : 'hover:bg-gray-700'
+              }`
+            }
+          >
+            <ReceiptText className="w-5 h-5 mr-3" />
+            Subscriptions
           </NavLink>
         </nav>
         <div className="px-4 py-4 border-t border-gray-700">

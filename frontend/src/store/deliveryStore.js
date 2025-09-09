@@ -28,7 +28,8 @@ const useDeliveryStore = create((set) => ({
       set({ deliveryOffers: response.data.data, isLoading: false });
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to fetch delivery offers",
+        error:
+          error.response?.data?.message || "Failed to fetch delivery offers",
         isLoading: false,
       });
       throw error;
@@ -38,7 +39,10 @@ const useDeliveryStore = create((set) => ({
   requestDelivery: async (subscriptionId, message = "") => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/request/${subscriptionId}`, { message });
+      const response = await axios.post(
+        `${API_URL}/request/${subscriptionId}`,
+        { message }
+      );
       set((state) => ({
         // Optionally update the offer status in the store if needed, or refetch
         deliveryOffers: state.deliveryOffers.filter(
@@ -67,7 +71,9 @@ const useDeliveryStore = create((set) => ({
       return response.data.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to fetch deliveryman dashboard meals",
+        error:
+          error.response?.data?.message ||
+          "Failed to fetch deliveryman dashboard meals",
         isLoading: false,
       });
       throw error;
@@ -77,39 +83,44 @@ const useDeliveryStore = create((set) => ({
   markMealAsDelivered: async (deliveryId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/mark-delivered`, { deliveryId });
+      const response = await axios.post(`${API_URL}/mark-delivered`, {
+        deliveryId,
+      });
       set({ isLoading: false });
       return response.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to mark meal as delivered",
+        error:
+          error.response?.data?.message || "Failed to mark meal as delivered",
         isLoading: false,
       });
       throw error;
     }
   },
 
-  // New function to fetch delivery requests for a subscription
   getDeliveryRequests: async (subscriptionId) => {
     set({ isLoading: true, error: null });
     try {
       const response = await axios.get(`${API_URL}/requests/${subscriptionId}`);
       set({ isLoading: false });
-      return response.data.data; // Assuming the backend returns { success: true, data: requests }
+      return response.data.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to fetch delivery requests",
+        error:
+          error.response?.data?.message || "Failed to fetch delivery requests",
         isLoading: false,
       });
       throw error;
     }
   },
 
-  // New function to appoint a deliveryman
   appointDeliveryman: async (subscriptionId, deliverymanId, requestId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.post(`${API_URL}/appoint/${subscriptionId}`, { deliverymanId, requestId });
+      const response = await axios.post(
+        `${API_URL}/appoint/${subscriptionId}`,
+        { deliverymanId, requestId }
+      );
       set({ isLoading: false });
       return response.data;
     } catch (error) {
@@ -129,7 +140,9 @@ const useDeliveryStore = create((set) => ({
       return response.data.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to fetch assigned deliveries",
+        error:
+          error.response?.data?.message ||
+          "Failed to fetch assigned deliveries",
         isLoading: false,
       });
       throw error;
@@ -139,18 +152,23 @@ const useDeliveryStore = create((set) => ({
   unassignDeliverymanByDeliveryman: async (subscriptionId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.patch(`${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/deliveryman`);
+      const response = await axios.patch(
+        `${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/deliveryman`
+      );
       set((state) => ({
         assignedDeliveries: state.assignedDeliveries.filter(
           (sub) => sub._id !== subscriptionId
         ),
         isLoading: false,
       }));
-      useSubscriptionStore.getState().updateSubscriptionDeliveryStatus(subscriptionId);
+      useSubscriptionStore
+        .getState()
+        .updateSubscriptionDeliveryStatus(subscriptionId);
       return response.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to unassign from delivery",
+        error:
+          error.response?.data?.message || "Failed to unassign from delivery",
         isLoading: false,
       });
       throw error;
@@ -160,12 +178,15 @@ const useDeliveryStore = create((set) => ({
   unassignDeliverymanByChef: async (subscriptionId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.patch(`${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/chef`);
+      const response = await axios.patch(
+        `${SUBSCRIPTION_API_URL}/${subscriptionId}/unassign/chef`
+      );
       set({ isLoading: false });
       return response.data;
     } catch (error) {
       set({
-        error: error.response?.data?.message || "Failed to unassign deliveryman",
+        error:
+          error.response?.data?.message || "Failed to unassign deliveryman",
         isLoading: false,
       });
       throw error;

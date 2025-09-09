@@ -4,7 +4,7 @@ import { User } from "../models/user.model.js";
 export const createMenu = async (req, res) => {
   try {
     const { title, description, schedule, coverImage } = req.body;
-    const chefId = req.userId;
+    const chefId = req.user.userId;
 
     const user = await User.findById(chefId).select("-password");
     if (!user) {
@@ -41,7 +41,7 @@ export const updateMenu = async (req, res) => {
   try {
     const { menuId } = req.params;
     const { title, description, schedule, coverImage } = req.body;
-    const chefId = req.userId;
+    const chefId = req.user.userId;
 
     const menu = await Menu.findById(menuId);
 
@@ -82,7 +82,7 @@ export const updateMenu = async (req, res) => {
 export const deleteMenu = async (req, res) => {
   try {
     const { menuId } = req.params;
-    const chefId = req.userId;
+    const chefId = req.user.userId;
 
     const menu = await Menu.findById(menuId);
 
@@ -151,11 +151,16 @@ export const getMenusByArea = async (req, res) => {
   try {
     const { area } = req.params;
     // Find chefs in the specified area
-    const chefsInArea = await User.find({ role: "chef", area: area }).select("_id");
-    const chefIds = chefsInArea.map(chef => chef._id);
+    const chefsInArea = await User.find({ role: "chef", area: area }).select(
+      "_id"
+    );
+    const chefIds = chefsInArea.map((chef) => chef._id);
 
     // Find menus created by these chefs
-    const menus = await Menu.find({ chef: { $in: chefIds } }).populate("chef", "name area");
+    const menus = await Menu.find({ chef: { $in: chefIds } }).populate(
+      "chef",
+      "name area"
+    );
 
     if (!menus || menus.length === 0) {
       return res.status(200).json({ success: true, menus: [] });
@@ -164,6 +169,8 @@ export const getMenusByArea = async (req, res) => {
     res.status(200).json({ success: true, menus });
   } catch (error) {
     console.error("Error in getMenusByArea ", error);
-    res.status(500).json({ success: false, message: "Server error in getMenusByArea" });
+    res
+      .status(500)
+      .json({ success: false, message: "Server error in getMenusByArea" });
   }
 };

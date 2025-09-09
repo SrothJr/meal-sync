@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import useSubscriptionStore from '../store/subscriptionStore';
-import SubscriptionCard from '../components/SubscriptionCard';
-import LoadingSpinner from '../components/LoadingSpinner';
-import Navbar from '../components/Navbar';
-import SelectInput from '../components/SelectInput'; // Import SelectInput
+import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import useSubscriptionStore from "../store/subscriptionStore";
+import SubscriptionCard from "../components/SubscriptionCard";
+import LoadingSpinner from "../components/LoadingSpinner";
+import Navbar from "../components/Navbar";
+import SelectInput from "../components/SelectInput";
 
 const ChefSubscriptionsPage = () => {
   const { chefSubscriptions, fetchChefSubscriptions } = useSubscriptionStore();
   const [loading, setLoading] = useState(true);
-  const [selectedStatus, setSelectedStatus] = useState(''); // State for status filter
-  const [selectedType, setSelectedType] = useState('');     // State for type filter
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedType, setSelectedType] = useState("");
 
   const statusOptions = [
-    { value: '', label: 'All Statuses' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'active', label: 'Active' },
-    { value: 'paused', label: 'Paused' },
-    { value: 'expired', label: 'Expired' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'rejected', label: 'Rejected' },
+    { value: "", label: "All Statuses" },
+    { value: "pending", label: "Pending" },
+    { value: "active", label: "Active" },
+    { value: "paused", label: "Paused" },
+    { value: "expired", label: "Expired" },
+    { value: "cancelled", label: "Cancelled" },
+    { value: "rejected", label: "Rejected" },
   ];
 
   const typeOptions = [
-    { value: '', label: 'All Types' },
-    { value: 'weekly', label: 'Weekly' },
-    { value: 'monthly', label: 'Monthly' },
+    { value: "", label: "All Types" },
+    { value: "weekly", label: "Weekly" },
+    { value: "monthly", label: "Monthly" },
   ];
 
   useEffect(() => {
@@ -62,7 +62,9 @@ const ChefSubscriptionsPage = () => {
         {/* Filter Controls */}
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="w-full md:w-1/3">
-            <label className="block text-gray-300 text-sm font-bold mb-2">Filter by Status:</label>
+            <label className="block text-gray-300 text-sm font-bold mb-2">
+              Filter by Status:
+            </label>
             <SelectInput
               value={selectedStatus}
               onChange={setSelectedStatus}
@@ -70,7 +72,9 @@ const ChefSubscriptionsPage = () => {
             />
           </div>
           <div className="w-full md:w-1/3">
-            <label className="block text-gray-300 text-sm font-bold mb-2">Filter by Type:</label>
+            <label className="block text-gray-300 text-sm font-bold mb-2">
+              Filter by Type:
+            </label>
             <SelectInput
               value={selectedType}
               onChange={setSelectedType}

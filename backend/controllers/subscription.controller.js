@@ -6,7 +6,7 @@ export const createSubscription = async (req, res) => {
   try {
     const { menuId, selection, subscriptionType, startDate, autoRenew } =
       req.body;
-    const subscriberId = req.userId;
+    const subscriberId = req.user.userId;
 
     const menu = await Menu.findById(menuId);
     if (!menu) {
@@ -116,7 +116,7 @@ export const createSubscription = async (req, res) => {
 
 export const getChefSubscriptions = async (req, res) => {
   try {
-    const chefId = req.userId;
+    const chefId = req.user.userId;
     const { status, subscriptionType } = req.query;
 
     const filter = { chef: chefId };
@@ -150,7 +150,7 @@ export const updateSubscriptionStatus = async (req, res) => {
   try {
     const { subscriptionId } = req.params;
     const { status } = req.body;
-    const requesterId = req.userId;
+    const requesterId = req.user.userId;
 
     const allowedStatusUpdates = ["active", "rejected", "paused", "cancelled"];
     if (!status || !allowedStatusUpdates.includes(status)) {
@@ -231,7 +231,7 @@ export const updateSubscriptionStatus = async (req, res) => {
 export const renewSubscription = async (req, res) => {
   try {
     const { subscriptionId } = req.params;
-    const requesterId = req.userId;
+    const requesterId = req.user.userId;
 
     const subscription = await Subscription.findById(subscriptionId);
 
@@ -241,7 +241,6 @@ export const renewSubscription = async (req, res) => {
         .json({ success: false, message: "Subscription not found." });
     }
 
-    // Authorization: Only the subscriber can renew their subscription
     if (subscription.subscriber.toString() !== requesterId) {
       return res.status(403).json({
         success: false,
@@ -249,7 +248,6 @@ export const renewSubscription = async (req, res) => {
       });
     }
 
-    // Business Rule: Check if the subscription is in a renewable state
     const nonRenewableStatuses = ["pending", "rejected", "cancelled", "paused"];
     if (nonRenewableStatuses.includes(subscription.status)) {
       return res.status(400).json({
@@ -258,7 +256,6 @@ export const renewSubscription = async (req, res) => {
       });
     }
 
-    // Fetch the current menu to get updated prices
     const menu = await Menu.findById(subscription.menu);
     if (!menu) {
       return res.status(404).json({
@@ -267,16 +264,14 @@ export const renewSubscription = async (req, res) => {
       });
     }
 
-    // Recalculate price based on current menu and selection
     const priceLookup = new Map();
     menu.schedule.forEach((item) => {
       const key = `${item.day}-${item.mealType}`;
       priceLookup.set(key, item.price);
     });
 
-    // --- CORRECTED PRICE CALCULATION LOGIC ---
     let newTotalPrice = 0;
-    // Map to store the total cost of meals for each selected day (e.g., Monday: 200, Tuesday: 150)
+
     const dailyMealCosts = new Map();
 
     subscription.selection.forEach((selectedDay) => {
@@ -288,25 +283,22 @@ export const renewSubscription = async (req, res) => {
       dailyMealCosts.set(selectedDay.day, costForThisDay);
     });
 
-    // Calculate the new end date for the *next* period
     const currentEndDate = new Date(subscription.endDate);
     let nextPeriodEndDate = new Date(currentEndDate);
 
     if (subscription.subscriptionType === "weekly") {
       nextPeriodEndDate.setDate(nextPeriodEndDate.getDate() + 7);
-      // For weekly, sum up the daily costs for the selected days in one week
+
       subscription.selection.forEach((selectedDay) => {
         newTotalPrice += dailyMealCosts.get(selectedDay.day) || 0;
       });
     } else if (subscription.subscriptionType === "monthly") {
       nextPeriodEndDate.setMonth(nextPeriodEndDate.getMonth() + 1);
 
-      // For monthly, iterate through each day of the *next* month-long period
       let tempCurrentDate = new Date(currentEndDate);
-      tempCurrentDate.setDate(tempCurrentDate.getDate() + 1); // Start counting from the day *after* the current end date
+      tempCurrentDate.setDate(tempCurrentDate.getDate() + 1);
 
       while (tempCurrentDate <= nextPeriodEndDate) {
-        // Changed to <= to include the last day of the new period
         const dayOfWeek = tempCurrentDate.toLocaleDateString("en-US", {
           weekday: "long",
         });
@@ -314,10 +306,10 @@ export const renewSubscription = async (req, res) => {
         tempCurrentDate.setDate(tempCurrentDate.getDate() + 1);
       }
     }
-    // Just extend the endDate.
+
     subscription.endDate = nextPeriodEndDate;
     subscription.totalPrice = newTotalPrice;
-    subscription.status = "active"; // Ensure it's active upon renewal
+    subscription.status = "active";
 
     await subscription.save();
 
@@ -338,7 +330,7 @@ export const renewSubscription = async (req, res) => {
 
 export const getMySubscriptions = async (req, res) => {
   try {
-    const subscriberId = req.userId;
+    const subscriberId = req.user.userId;
 
     const subscriptions = await Subscription.find({ subscriber: subscriberId })
       .populate("chef", "name email area")
@@ -362,15 +354,15 @@ export const getMySubscriptions = async (req, res) => {
 export const getSubscriptionById = async (req, res) => {
   try {
     const { subscriptionId } = req.params;
-    const requesterId = req.userId;
+    const requesterId = req.user.userId;
 
     console.log("Requester ID:", requesterId);
 
     const subscription = await Subscription.findById(subscriptionId)
       .populate("subscriber", "name email area")
       .populate("chef", "name email area")
-      .populate("menu", "title schedule") // Populate schedule for menu details
-      .populate("delivery.deliveryPerson", "name email"); // Add this line
+      .populate("menu", "title schedule")
+      .populate("delivery.deliveryPerson", "name email");
 
     if (!subscription) {
       console.log("Subscription not found for ID:", subscriptionId);
@@ -379,14 +371,12 @@ export const getSubscriptionById = async (req, res) => {
         .json({ success: false, message: "Subscription not found" });
     }
 
-    // Correctly access the _id property of the populated objects
     const subscriberIdFromSub = subscription.subscriber._id.toString();
     const chefIdFromSub = subscription.chef._id.toString();
 
     // console.log("Subscription Subscriber ID:", subscriberIdFromSub);
     // console.log("Subscription Chef ID:", chefIdFromSub);
 
-    // Authorization: Only the subscriber or chef involved in the subscription can view it
     if (subscriberIdFromSub !== requesterId && chefIdFromSub !== requesterId) {
       console.log(
         "Access Denied: Requester ID does not match subscriber or chef ID."
@@ -408,20 +398,28 @@ export const getSubscriptionById = async (req, res) => {
 export const unassignDeliverymanByChef = async (req, res) => {
   try {
     const { subscriptionId } = req.params;
-    const chefId = req.userId;
+    const chefId = req.user.userId;
 
     const subscription = await Subscription.findById(subscriptionId);
 
     if (!subscription) {
-      return res.status(404).json({ success: false, message: "Subscription not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Subscription not found." });
     }
 
     if (subscription.chef.toString() !== chefId) {
-      return res.status(403).json({ success: false, message: "Access denied. You are not the chef for this subscription." });
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You are not the chef for this subscription.",
+      });
     }
 
     if (!subscription.delivery.deliveryPerson) {
-      return res.status(400).json({ success: false, message: "No delivery person assigned to this subscription." });
+      return res.status(400).json({
+        success: false,
+        message: "No delivery person assigned to this subscription.",
+      });
     }
 
     subscription.delivery.deliveryPerson = null;
@@ -429,26 +427,40 @@ export const unassignDeliverymanByChef = async (req, res) => {
     subscription.delivery.requests = [];
     await subscription.save();
 
-    res.status(200).json({ success: true, message: "Deliveryman unassigned successfully." });
+    res
+      .status(200)
+      .json({ success: true, message: "Deliveryman unassigned successfully." });
   } catch (error) {
     console.error("Error in unassignDeliverymanByChef: ", error);
-    res.status(500).json({ success: false, message: "Server Error in unassignDeliverymanByChef" });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in unassignDeliverymanByChef",
+    });
   }
 };
 
 export const unassignDeliverymanByDeliveryman = async (req, res) => {
   try {
     const { subscriptionId } = req.params;
-    const deliverymanId = req.userId;
+    const deliverymanId = req.user.userId;
 
     const subscription = await Subscription.findById(subscriptionId);
 
     if (!subscription) {
-      return res.status(404).json({ success: false, message: "Subscription not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Subscription not found." });
     }
 
-    if (!subscription.delivery.deliveryPerson || subscription.delivery.deliveryPerson.toString() !== deliverymanId) {
-      return res.status(403).json({ success: false, message: "Access denied. You are not the assigned deliveryman for this subscription." });
+    if (
+      !subscription.delivery.deliveryPerson ||
+      subscription.delivery.deliveryPerson.toString() !== deliverymanId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. You are not the assigned deliveryman for this subscription.",
+      });
     }
 
     subscription.delivery.deliveryPerson = null;
@@ -456,9 +468,15 @@ export const unassignDeliverymanByDeliveryman = async (req, res) => {
     subscription.delivery.requests = [];
     await subscription.save();
 
-    res.status(200).json({ success: true, message: "You have successfully unassigned yourself from this delivery." });
+    res.status(200).json({
+      success: true,
+      message: "You have successfully unassigned yourself from this delivery.",
+    });
   } catch (error) {
     console.error("Error in unassignDeliverymanByDeliveryman: ", error);
-    res.status(500).json({ success: false, message: "Server Error in unassignDeliverymanByDeliveryman" });
+    res.status(500).json({
+      success: false,
+      message: "Server Error in unassignDeliverymanByDeliveryman",
+    });
   }
 };

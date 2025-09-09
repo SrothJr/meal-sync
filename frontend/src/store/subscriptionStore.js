@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import axios from 'axios';
+import { create } from "zustand";
+import axios from "axios";
 
 const API_URL =
   import.meta.env.MODE === "development"
@@ -11,11 +11,16 @@ axios.defaults.withCredentials = true;
 const useSubscriptionStore = create((set, get) => ({
   chefSubscriptions: [],
   mySubscriptions: [],
-  currentSubscription: null, // New state for single subscription
+  currentSubscription: null,
   isLoading: false,
   error: null,
 
-  clearSubscriptions: () => set({ chefSubscriptions: [], mySubscriptions: [], currentSubscription: null }),
+  clearSubscriptions: () =>
+    set({
+      chefSubscriptions: [],
+      mySubscriptions: [],
+      currentSubscription: null,
+    }),
 
   fetchChefSubscriptions: async (filters = {}) => {
     set({ isLoading: true, error: null });
@@ -25,7 +30,10 @@ const useSubscriptionStore = create((set, get) => ({
       set({ chefSubscriptions: response.data.data, isLoading: false });
       return response.data.data;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to fetch subscriptions", isLoading: false });
+      set({
+        error: error.response?.data?.message || "Failed to fetch subscriptions",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -37,7 +45,10 @@ const useSubscriptionStore = create((set, get) => ({
       set({ mySubscriptions: response.data.data, isLoading: false });
       return response.data.data;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to fetch subscriptions", isLoading: false });
+      set({
+        error: error.response?.data?.message || "Failed to fetch subscriptions",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -49,7 +60,12 @@ const useSubscriptionStore = create((set, get) => ({
       set({ currentSubscription: response.data.data, isLoading: false });
       return response.data.data;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to fetch subscription details", isLoading: false });
+      set({
+        error:
+          error.response?.data?.message ||
+          "Failed to fetch subscription details",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -58,14 +74,16 @@ const useSubscriptionStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(API_URL, subscriptionData);
-      // Add to mySubscriptions, since only subscribers can create subscriptions
       set((state) => ({
         mySubscriptions: [...state.mySubscriptions, response.data.data],
         isLoading: false,
       }));
       return response.data.data;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to create subscription", isLoading: false });
+      set({
+        error: error.response?.data?.message || "Failed to create subscription",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -73,7 +91,10 @@ const useSubscriptionStore = create((set, get) => ({
   updateSubscriptionStatus: async (subscriptionId, status) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.patch(`${API_URL}/${subscriptionId}/status`, { status });
+      const response = await axios.patch(
+        `${API_URL}/${subscriptionId}/status`,
+        { status }
+      );
       const updatedSubscription = response.data.data;
 
       set((state) => ({
@@ -83,12 +104,20 @@ const useSubscriptionStore = create((set, get) => ({
         mySubscriptions: state.mySubscriptions.map((sub) =>
           sub._id === subscriptionId ? updatedSubscription : sub
         ),
-        currentSubscription: state.currentSubscription?._id === subscriptionId ? updatedSubscription : state.currentSubscription, // Update currentSubscription if it's the one being updated
+        currentSubscription:
+          state.currentSubscription?._id === subscriptionId
+            ? updatedSubscription
+            : state.currentSubscription, // Update currentSubscription if it's the one being updated
         isLoading: false,
       }));
       return updatedSubscription;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to update subscription status", isLoading: false });
+      set({
+        error:
+          error.response?.data?.message ||
+          "Failed to update subscription status",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -102,12 +131,18 @@ const useSubscriptionStore = create((set, get) => ({
         mySubscriptions: state.mySubscriptions.map((sub) =>
           sub._id === subscriptionId ? renewedSubscription : sub
         ),
-        currentSubscription: state.currentSubscription?._id === subscriptionId ? renewedSubscription : state.currentSubscription, // Update currentSubscription if it's the one being renewed
+        currentSubscription:
+          state.currentSubscription?._id === subscriptionId
+            ? renewedSubscription
+            : state.currentSubscription, // Update currentSubscription if it's the one being renewed
         isLoading: false,
       }));
       return renewedSubscription;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to renew subscription", isLoading: false });
+      set({
+        error: error.response?.data?.message || "Failed to renew subscription",
+        isLoading: false,
+      });
       throw error;
     }
   },
@@ -115,32 +150,44 @@ const useSubscriptionStore = create((set, get) => ({
   unassignDeliverymanByChef: async (subscriptionId) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.patch(`${API_URL}/${subscriptionId}/unassign/chef`);
+      const response = await axios.patch(
+        `${API_URL}/${subscriptionId}/unassign/chef`
+      );
       const updatedSubscription = response.data.data;
       set((state) => ({
         chefSubscriptions: state.chefSubscriptions.map((sub) =>
           sub._id === subscriptionId ? updatedSubscription : sub
         ),
-        currentSubscription: state.currentSubscription?._id === subscriptionId ? updatedSubscription : state.currentSubscription,
+        currentSubscription:
+          state.currentSubscription?._id === subscriptionId
+            ? updatedSubscription
+            : state.currentSubscription,
         isLoading: false,
       }));
       return updatedSubscription;
     } catch (error) {
-      set({ error: error.response?.data?.message || "Failed to unassign deliveryman", isLoading: false });
+      set({
+        error:
+          error.response?.data?.message || "Failed to unassign deliveryman",
+        isLoading: false,
+      });
       throw error;
     }
   },
 
   updateSubscriptionDeliveryStatus: (subscriptionId) => {
     set((state) => {
-      if (state.currentSubscription && state.currentSubscription._id === subscriptionId) {
+      if (
+        state.currentSubscription &&
+        state.currentSubscription._id === subscriptionId
+      ) {
         return {
           currentSubscription: {
             ...state.currentSubscription,
             delivery: {
               ...state.currentSubscription.delivery,
               deliveryPerson: null,
-              deliveryStatus: 'unassigned',
+              deliveryStatus: "unassigned",
             },
           },
         };

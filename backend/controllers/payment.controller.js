@@ -1,19 +1,16 @@
-import Stripe from 'stripe'; // Import Stripe
-import dotenv from 'dotenv';
+import Stripe from "stripe";
+import dotenv from "dotenv";
 
 dotenv.config();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Initialize Stripe here or pass it from server.js
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export const createPaymentIntent = async (req, res) => {
-  const { amount } = req.body; // Amount should be in the smallest currency unit (e.g., cents for USD)
+  const { amount } = req.body;
 
   try {
-    // Create a PaymentIntent with the order amount and currency
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
-      currency: 'usd', // Or your desired currency
-      // In a real application, you would also include customer, description, etc.
-      // For mock, this is sufficient.
+      currency: "usd",
     });
 
     res.status(200).json({
@@ -21,10 +18,10 @@ export const createPaymentIntent = async (req, res) => {
       clientSecret: paymentIntent.client_secret,
     });
   } catch (error) {
-    console.error('Error creating PaymentIntent:', error);
+    console.error("Error creating PaymentIntent:", error);
     res.status(500).json({
       success: false,
-      message: 'Error creating PaymentIntent',
+      message: "Error creating PaymentIntent",
       error: error.message,
     });
   }
